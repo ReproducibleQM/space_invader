@@ -9,5 +9,5 @@ Omon Obarein
 Prashant Ghimire  
 Nageen Farooq  
 Mike Back  
-Kyle Smart 
+Kyle Smart   
 Trixie Taucher
