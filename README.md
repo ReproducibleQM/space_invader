@@ -11,8 +11,9 @@ Nageen Farooq
 Mike Back  
 Kyle Smart   
 Trixie Taucher  
-Mike Crowell
+Mike Crowell  
 
-[Google Docs Link](https://docs.google.com/document/d/1M26ARpFcPuU9cNTjIHVC-aVp6aae73v4KPX2uae2jQs/edit?usp=sharing)
+Links:  
+[Google Drive Folder](https://docs.google.com/document/d/1M26ARpFcPuU9cNTjIHVC-aVp6aae73v4KPX2uae2jQs/edit?usp=sharing) for working documents
 
-[Zotero link](https://www.zotero.org/groups/4420465/space_invader) for reference management
+[Zotero Library](https://www.zotero.org/groups/4420465/space_invader) for reference management
