@@ -10,8 +10,10 @@ Prashant Ghimire
 Nageen Farooq  
 Mike Back  
 Kyle Smart   
-Trixie Taucher
+Trixie Taucher  
+Mike Crowel  
 
-[Google Docs Link](https://docs.google.com/document/d/1M26ARpFcPuU9cNTjIHVC-aVp6aae73v4KPX2uae2jQs/edit?usp=sharing)
+Links:  
+Working Documents: [Google Docs Link](https://docs.google.com/document/d/1M26ARpFcPuU9cNTjIHVC-aVp6aae73v4KPX2uae2jQs/edit?usp=sharing)
 
-[Zotero link for reference management](https://www.zotero.org/groups/4420465/space_invader)
+References: [Zotero link for reference management](https://www.zotero.org/groups/4420465/space_invader)
