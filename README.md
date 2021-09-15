@@ -15,5 +15,5 @@ Trixie Taucher
 Mike Crowell  
 
 **Links:**  
-[Google Drive Folder](https://docs.google.com/document/d/1M26ARpFcPuU9cNTjIHVC-aVp6aae73v4KPX2uae2jQs/edit?usp=sharing) for working documents  
+[Google Drive Folder](https://drive.google.com/drive/folders/1sTO82SpRBohD0RHLDluQq159Hha1JXZK) for working documents  
 [Zotero Library](https://www.zotero.org/groups/4420465/space_invader) for reference management
