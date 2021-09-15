@@ -1,7 +1,6 @@
-placeholder text
-## **Data Reuse Planning Template**
+## **Data Reuse Plan**
 
-Create a text file including information provided below, as appropriate.  Save this file as " **DataReusePlan.txt**" and save in top-level folder of your data set for use by future researchers wanting to reuse your data.
+This is the basic metadata file for our project dataset, also housed in this repository.
 
 ## | **What** |
 
