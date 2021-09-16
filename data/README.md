@@ -1,107 +1,89 @@
+
 ## **Data Reuse Plan**
 
 This is the basic metadata file for our project dataset, also housed in this repository.
 
 ## | **What** |
 
-**Description (abstract):** What is your project about?  What is the goal?  Why are you doing it?  How does this data relate to your project?
+**Description (abstract):** This project is about niche differentiation of lady beetles at Kellogg Biological Station (KBS), South-western Michigan, United States. The major goal of this project is to analyse long term ecological data collected since 1989 on two species of lady beetles. This project is a part of a graduate coursework in Reproducible Quantitative Methods (RQM) at Kent State University.
 
-**Title:** What do you want to call your data set?
+**Title:** Coccinella septempunctata and Harmonia axyridis caught on sticky traps in the Main Cropping System Experiment, Kellogg Biological Station, 1989-2020
 
-       e.g. "Data from: <name of your project>", "Soil moisture data in Namibian Delta 1982"
+**Permanent Identifier:**
 
-**Permanent Identifier:** A way for folks to find your data. Do you have a DOI or other permanent identifier?
+http://doi.org/10.6073/pasta/6b6cc0ad7897d9008e8cf918bbf552d2 
+Original data landing page: https://lter.kbs.msu.edu/datatables/67 
 
-       e.g. https://dx.doi.org/10.6084/m9.figshare.2061996.v1
+**Data Source:** Data extracted from KBS LTER Main Cropping System Experiment
+KBS LTER Datatable - Insect Populations via Sticky Traps (msu.edu)
+     
+**Subject:** Entomology, community ecology, environmental science, agriculture, invasive species, insects
 
-**Data Source:** If you included someone else's data in your data set, provide information on where it came from. Just like articles, if you use it, cite it. It is preferable to include a permanent identifier like a DOI.
-
-       e.g. Forstmann BU, et al. (2014) Data from: Multi-modal ultra-high resolution structural 7-Tesla 
-       MRI data repository. Dryad Digital Repository. (http://dx.doi.org/10.5061/dryad.fb41s)
-
-**Subject:** In what discipline or subject area is your project?
-
-       e.g. Neurological biochemistry, applied ecology, etc.
-
-**Related publication:** Have you published an article, thesis or some other publication based on this data? Include a full citation and permanent identifier, if available.
-
-      e.g. Forstmann BU, et al.  (2014) Multi-modal ultra-high resolution structural 7-Tesla MRI data repository.
-      Scientific Data 1:140050. (http://dx.doi.org/10.1038/sdata.2014.50)
+**Related publications:** Have you published an article, thesis or some other publication based on this data? Include a full citation and permanent identifier, if available.
+https://doi.org/10.1371/journal.pcbi.1007542
+10.1371/journal.pone.0083407
+10.1007/s10530-014-0772-4
+http://dx.doi.org/10.1890/14-2022.1 
 
 ## | **Who** |
 
-**Data Collector:** Person/organization responsible for collecting data
+KBS LTER, Michigan State University; Christie Bahlai, PhD, Kent State University
 
-        e.g. Roberts Lab, University of Washington; Phoebe Marshwana, PhD, Michigan State University
+**Funder Information** : Support for this research was also provided by the NSF Long-term Ecological Research Program (DEB 1832042) at the Kellogg Biological Station and by Michigan State University AgBioResearch. Additional funding has come from US Department of Energy, US Department of Agriculture, and Electrical Power Research, the BEACON Center for Evolution in Action, and the Mozilla Foundation.
 
-**Funder Information** : Is this project sponsored by a funding agency?  If so, include name of the funding agency, grant number, and principal investigator name/s & affiliations.
 
-       e.g.  Funded by European Commission's Framework 7 Program under Grant No. FP7-ICT-2016- 224495. 
-       PI: Dr. Carol Magnusson, Oxford University)
+**Collaborators:** Christie Bahlai, Erin VanderJeugdt, Matthew B. Arnold, Omon Obarein, Prashant Ghimire, Nageen Farooq, Michael Back, Kyle Smart, Trixie Taucher, Mike Crowell. Affiliations include: Kent State University, Michigan State University
 
-**Collaborators:** Are there any collaborators on this project? Provide names and affiliations.
+**Contact person:** 
 
-        e.g.  Dr. Adorja Bilka, Rensselaer Polytechnic Institute
-
-**Contact person:** Who should someone contact for additional information about the data set?  Include affiliation and contact information such as phone number, email, and/or physical address.
-
-        e.g.  Dr. Alain Benziger, Swiss Tropical and Public Health Institute, Socinstrasse 57, 4051 Basel, 
-        Switzerland; abenziger@swisstph.ch
+      Christie Bahlai, Investigator, cbahlai@kent.edu 
+Doug Landis, Lead Investigator, landisd@msu.edu 
+     
 
 ## | **Where** |
 
-**Location:** Where was the data collected? One place? Multiple places? Use geographic coordinates if appropriate.
-
-        e.g.  Skukuza, Swaziland; N -24.9916  degrees, W 31.5874 degrees; Multiple sites along Congo 
-        River Delta
-
-**Place of publication:** Where is the data made publicly available? Include URL.
-
-       e.g. Penn State University Scholarsphere: https://scholarsphere.psu.edu/
+**Location:** Kellogg Biological Station’s Main Cropping System Experiment, and adjacent forest plots, South West Michigan.
 
 ## | **When** |
 
-**Temporal Coverage:** When was the data collected?  On a specific date? Specific time? Over a range of dates? Use the international standard date format (YYYY-MM-DD hh:mm.ss) and try to be as specific as possible.
+**Temporal Coverage:** 1989-05-24 to 2020-09-04. Sampling is conducted weekly during the growing season as described in the sampling protocol. Sampling periods varied from 8-15 weeks in a given year depending on crop management issues and labor availability.
 
-        e.g. 2015-07-01 to 2015-12-31; 2000 - 2010
+**Publication Date:** When was the data made available in the place of publication (above)? 
 
-**Publication Date:** When was the data made available in the place of publication (above)? Again, use the international standard date format.
-
-        e.g. 2016-01-15
+        Most recent addition: 2020-09-04 (we have access to newer data, pre-publication)
 
 ## | **How** |
 
-**Data collection process:** What instruments were used to collect the data? how frequently were the data collected? how were data collection sites selected? if there was a sample population, how was it selected?
+**Data collection process:** The standard method used to measure these organisms is a yellow sticky trap. Insects collected on sticky-trap are classified by species,family and order. The insects are counted for each treatment, replicate and station combination. The actual sticky trap location coordinates are given in UTM 16N.
+Protocol - Insect Abundance - Sticky Traps (msu.edu)
 
-       e.g. Minimum and maximum observed temperature for each day was calculated at morning 
-       high tide using CoolRead thermometers calibrated using the XYZ method.
+**Data processing:** How did you clean the data? How are missing or null values handled? Did you write code for processing the data and where can it be found?
 
-**Data processing:** How did you clean the data? how are missing or null values handled? did you write code for processing the data and where can it be found?
+      **File index:**
 
-       e.g. Differences in site mortality were determined through survdiff tests performed using X software 
-       version 2.10.3.  Comparisons with a p-value less than 0.05 (P<0.05) were considered different. Raw data 
-       and scripts used in analysis are available in a GitHub repository: https:github.com/omeara/oysters/
+See https://github.com/ReproducibleQM/space_invader/tree/main/data
 
-**File index:** A listing of folders and files included in the data set.  Explain what files will be found in each folder and naming conventions used.  Additional files could include any questionnaires or other survey instruments used to collect the data.  Be sure to nclude codebooks and data dictionaries or similar README files.
+**File format/s:** Dataset saved as text file in the comma separated values (.csv) format. This file can be viewed in any text editor, or any spreadsheet software.
 
-See http://www.fs.usda.gov/rds/archive/products/RDS-2013-0013/_fileindex_RDS-2013-0013.html
 
-**File format/s:** What type/s of files are these?  Are there multiple formats? What software is needed to use the file/s?
 
-Avoid proprietary formats if possible! Most data can be reformatted to be communicated in text-based forms.
 
-        e.g. Data files are in text files in the comma-separated-values format and can be opened with any text editor.
+## Variables that appear in these data:
 
-**Standard Metadata:** Increasingly, scientific fields are moving towards standard metadata formats (data.json, data.xml, etc) to pull all the information in the Data Reuse plan together in a machine readable format. Machine readable metadata enables cataloging of datasets on sites like Data.gov and allows other to ask questions and access your datasets using code.  For example, open US govenment data online is required to expose a data.json in the landing page html to be listed on Data.gov, thereby facilitating data discovery. Because not all researchers who are mandated to actually include data.json files, Data.gov is incomplete, and simple questions like "what is the total volume of data generated by US federally funded scientists?" are unanswerable.  
+Year: The year the sample was collected from 1989-2020.
+DATE: The date the sample was collected in mm/dd/yyyy format.
+TREAT: Treatment ID of plot from 1-7, plus three forest treatments, SF, DF, and CF.
+ 	Possible values: T1- Field crop rotation, Conventional management 
+			T2- Field crop rotation, no-till management
+			T3- Reduced input crop rotation with cover crop
+T4- Biologically based crop rotation with cover crop
+T5- Poplar (plated in 2019)
+T6- Switchgrass (Alfalfa from 19
+T7- Early successional community 
+HABITAT: The predominant plant or plant community present  in the plot, in a given year. Note that the original data file contains spelling errors that are resolved by substitution in the data cleaning script.
+Maize, soybean, wheat, early successional, poplar, alfalfa, switchgrass, successional forest, coniferous forest, deciduous forest.
+REPLICATE: Number identifiers for replicates of treatment plots. There are six replicates of the agricultural treatments T1-T7, and three replicates each of the surrounding forest plots, SF, CF, and DF
+STATION: Sampling station within each plot, from five permanent sampling stations.
+SPID: Species Identification: C7 for Coccinella septempunctata and HAXY for Harmonia axyridis. 
+SumOfADULTS: number of adults of that species that was in the trap at sampling time
 
-What is the metadata standard in your field? Not sure? That's normal. Your field may not have a universal standard yet. Check out the [Research Data Alliance recommendations](https://www.rd-alliance.org/recommendations-and-outputs/all-recommendations-and-outputs) and consider getting involved in the creation of metadata standards in your field!
-
-## Note about codebooks and data dictionaries:
-
-The use of additional documentation formats such as codebooks and data dictionaries in conjunction with your DataReusePlan.txt and other data set files makes your data infinitely more reusable and provide assistance with managing your data and your research process as a whole.  Like your Data Reuse Plan, these file are stored with the rest of your data files, usually in a top-level folder.
-
-A **data dictionary** (sometimes used interchangeably with " **codebook**")  is another text file for defining field names and values.  The file includes a list of all field names in the data set and a description of each such as: units of measurement, formulas used for calculation, abbreviations, value ranges, as well as the relationship of fields to one another.
-
-Example of a data dictionary: http://www.utexas.edu/cola/redcap/_files/data_dictionary_example.jpg
-
-For more information see: "Best Practices for Data Dictionary Definitions and Usage" by the Northwest Environmental Data Network (http://www.pnamp.org/sites/default/files/best_practices_for_data_dictionary_definitions_and_usage_version_1.1_2006-11-14.pdf).
