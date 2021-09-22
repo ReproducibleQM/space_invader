@@ -19,3 +19,8 @@ Mike Crowell
 [Zotero Library](https://www.zotero.org/groups/4420465/space_invader) for reference management
 
 Christie is adding a note on her local computer.
+
+
+
+
+Kyle Smart is adding a note on his local computer.
