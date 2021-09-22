@@ -28,4 +28,5 @@ Kyle Smart is adding a note on his local computer.
 
 Erin VanderJeugdt is adding a note on her local computer.
 
+<<<<<<< Updated upstream
 Mike tried something...again
