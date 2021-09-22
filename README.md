@@ -28,5 +28,11 @@ Kyle Smart is adding a note on his local computer.
 
 Erin VanderJeugdt is adding a note on her local computer.
 
+Omon tried something
+
 <<<<<<< Updated upstream
 Mike tried something...again
+Mike tried something
+Omon made changes
+
+>>>>>>> Stashed changes
