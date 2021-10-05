@@ -84,7 +84,7 @@ replace.missing<-function(vec){
   New = c()
   for (i in 1:(length(vec))){
     if (is.na(vec[i])){
-      vec[i]<-vec[i-1]
+      vec[i]<-mean(c(vec[i-1], vec[i+1]), na.rm=TRUE)
       #if the data is missing, sub in the value from the measurement before
       
     } else{
