@@ -6,28 +6,7 @@
 LB<-read.csv(file="data/KBS_Haxy_C7_1989-2020.csv", header=T,
              na.strings=c(NA))
 
-#### some silly functions, conditionals and loops to demonstrate their structure in R
-sum.of.squares <- function(x,y) {#paste in demo function that calculates sum of squares
-  x^2 + y^2 #add square of x to square of y
-}
 
-sum.of.squares(3,4)#demo sum of squares function
-
-iszero<-function(number){#create a function that determines if a value is zero
-  if(number==0){
-    print("yes")#if the number is zero, print yes
-  }else{
-    print("no")#otherwise print no
-  }
-}
-
-iszero("cherry pie")#demonstrate iszero function
-
-vec<-c(1,2,3,0)#define a test vector for demonstrating a function on a loop
-
-for(i in 1:length(vec)){#demonstrate a simple loop 
-  iszero(vec[i])#is each item in the vector zero?
-}
 ##### enough of all that, what about real data?
 summary(LB)
 
@@ -51,12 +30,12 @@ LB$newdate<-mdy(LB$DATE)#parses the date format now used by all observations
 summary(LB)#bingo! looks like it worked!
 
 ###################################
-#UNADAPTED PASTED CODE BELOW WILL NOT WORK
+#Begin weather data processing
 
 
 
 #download weather data from KBS weather station
-weather<-read.table(file="http://lter.kbs.msu.edu/datatables/7.csv",
+weather<-read.csv(file="http://lter.kbs.msu.edu/datatables/7.csv",
                     header=T, sep=",", na.strings="")
 #extract day of year, so we have a continuous variable running for each year.
 #since we're in a temperate northern climate, this is convenient- not too 
@@ -83,7 +62,7 @@ weather$flag_air_temp_mean<-NULL
 weather$flag_air_temp_max<-NULL
 weather$flag_air_temp_min<-NULL
 
-#also, these data are sorted in decending order. It's easier to think of this 
+#also, these data are sorted in descending order. It's easier to think of this 
 #stuff in ascending order, so let's sort the data by year and DOY
 
 weather<-weather[order(weather$year, weather$DOY),]
@@ -91,7 +70,7 @@ weather<-weather[order(weather$year, weather$DOY),]
 #Let's examine the data to see how complete it is
 summary(weather)
 
-#lets's pre-process these weather data so we get rid of missing values
+#let's pre-process these weather data so we get rid of missing values
 # we can write a function to do this for us.
 #if missing data is rare, it is probably safe to assume that missing
 #temperatures are similar to the weather on the day before or after.
