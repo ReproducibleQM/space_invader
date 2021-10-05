@@ -35,7 +35,7 @@ summary(LB)#bingo! looks like it worked!
 
 
 #download weather data from KBS weather station
-weather<-read.csv(file="http://lter.kbs.msu.edu/datatables/7.csv",
+weather<-read.table(file="http://lter.kbs.msu.edu/datatables/7.csv",
                     header=T, sep=",", na.strings="")
 #extract day of year, so we have a continuous variable running for each year.
 #since we're in a temperate northern climate, this is convenient- not too 
