@@ -246,3 +246,4 @@ plot(weather$DOY, weather$dd.accum)
 #the lampyrids if we can't explain all the variation
 weather$dd.accum0<-accum.allen(weather$air_temp_max_clean, weather$air_temp_min_clean, 10, weather$DOY, 1)
 
+#test
