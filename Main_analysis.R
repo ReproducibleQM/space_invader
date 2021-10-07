@@ -35,8 +35,19 @@ summary(LB)#bingo! looks like it worked!
 
 
 #download weather data from KBS weather station
-weather<-read.table(file="http://lter.kbs.msu.edu/datatables/7.csv",
-                    header=T, sep=",", na.strings="")
+#download a local copy into the data folder and then pull it from there to load
+
+# # how file was downloaded- commented out so it's not run and re-downloaded each time
+# # Specify URL where file is stored
+# url <- "http://lter.kbs.msu.edu/datatables/7.csv"
+# # Specify destination where file should be saved
+# destfile <- "data/kbsweather.csv"
+# # Apply download.file function in R
+# download.file(url, destfile)
+
+
+weather<-read.csv(file="data/kbsweather.csv",
+                    header=T, sep=",", na.strings="", comment.char = '#')
 #extract day of year, so we have a continuous variable running for each year.
 #since we're in a temperate northern climate, this is convenient- not too 
 #much insect action happening at the december-january transition, so we 
