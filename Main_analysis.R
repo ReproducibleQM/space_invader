@@ -247,14 +247,10 @@ accum.allen<-function(maxi, mini, thresh, DOY, startday){
 }
 
 #same sort of checks. Run the function for our data
-
-weather$dd.accum<-accum.allen(weather$air_temp_max_clean, weather$air_temp_min_clean, 10, weather$DOY, start)
+start<-1
+weather$dd.accum<-accum.allen(weather$temp_max_cleaned, weather$temp_min_cleaned, 10, weather$DOY, start)
 #and plot that thing to look for problems:
 plot(weather$DOY, weather$dd.accum)
 #looks good! victory!!!
 
-#let's also compute degree day accumulation from the beginning of year- we may need to see how the winter affected 
-#the lampyrids if we can't explain all the variation
-weather$dd.accum0<-accum.allen(weather$air_temp_max_clean, weather$air_temp_min_clean, 10, weather$DOY, 1)
 
-#test
