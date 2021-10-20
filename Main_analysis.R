@@ -27,8 +27,23 @@ LB$DATE<-gsub(" 0:00", "", LB$DATE)#remove time stamp strings
 
 LB$newdate<-mdy(LB$DATE)#parses the date format now used by all observations
 
+LB$DOY<-yday(LB$newdate)
+LB$week<-isoweek(LB$newdate)
+
 summary(LB)#bingo! looks like it worked!
 
+#let's take a look at ladybeetles by treatment
+#we need to aggregate the data by rep first, because subsamples are zero-biased
+library(dplyr)
+
+lb_rep<-aggregate(data=LB, SumOfADULTS~ Year+week+TREAT+HABITAT+REPLICATE+SPID, FUN=sum)
+
+library(ggplot2)
+
+lb_boxplot<-ggplot(lb_rep, aes(x=TREAT, y=SumOfADULTS, fill=SPID))+
+  geom_boxplot()+scale_y_log10()
+
+lb_boxplot
 ###################################
 #Begin weather data processing
 
