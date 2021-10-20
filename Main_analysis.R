@@ -253,4 +253,85 @@ weather$dd.accum<-accum.allen(weather$temp_max_cleaned, weather$temp_min_cleaned
 plot(weather$DOY, weather$dd.accum)
 #looks good! victory!!!
 
+#we have good reason to think precipitation may also be important for ladybeetles
+#let's use the functions developed for the lampyrid analysis to aggregate some precipitation metrics
+
+accum.precip<-function (precip, week){
+  precip.acc<-c()
+  counter<-week[1]
+  accumulation<-0
+  for (i in 1:length(precip)){
+    if(week[i]==counter){
+      accumulation<-accumulation + precip[i]
+    }else{
+      counter<-week[i]
+      accumulation<-precip[i]
+    }
+    precip.acc<-c(precip.acc, accumulation)
+  }
+  return(precip.acc)
+}
+
+#run the precipitation accumulation function
+weather$prec.accum<-accum.precip(weather$precipitation, weather$week)
+
+
+#looks good! now let's count rainy days
+#this is a simple thing, doesn't really need a function to encode for it, but what the heck
+#might as well be consistent with how we've handled processing other weather data
+#encoding rain days as 0/1 will allow us to simply sum up the number of rainy days for whatever time 
+#period we like
+
+rainy.days<-function (precip, week){
+  rainy.days<-c()
+  for (i in 1:length(precip)){
+    if(precip[i]>0){
+      raindays<-1
+    }else{
+      raindays<-0
+    }
+    rainy.days<-c(rainy.days, raindays)
+  }
+  return(rainy.days)
+}
+
+#and now the rain day counter
+weather$rain.days<-rainy.days(weather$precipitation, weather$week)
+
+#finally, we need to be able to compute the accumulated precipitation over the season from a given timepoint
+#another function? I think SO! base this one on the degree day accumulation function 
+
+
+accum.precip.time<-function(precip, DOY, startday){
+  #if startday is not given, assume it's day 1
+  if(missing(startday)) {
+    startday<-1
+  } else {
+    startday<-startday
+  }
+  prec.accum<-c()
+  for (i in 1:length(DOY)){
+    #hmm, need a way to sum up over the year, starting anew for each year.
+    #this should do it
+    if (DOY[i]==1){
+      prec.accum.day=0
+    }
+    #the accumulation on day i is the precip accumulation before
+    #plus the precip accumulated on that day
+    prec.accum.day<-prec.accum.day+precip[i]
+    
+    #but if the precip is accumulating before the startday, we want to forget them
+    if (DOY[i]<startday){
+      prec.accum.day=0
+    }
+    #add that day's accumulation to the vector
+    prec.accum<-c(prec.accum, prec.accum.day)
+  }
+  return (prec.accum)
+}
+
+weather$prec.accum.0<-accum.precip.time(weather$precipitation, weather$DOY, start)
+#and plot that thing to look for problems:
+plot(weather$DOY, weather$prec.accum.0)
+
 
