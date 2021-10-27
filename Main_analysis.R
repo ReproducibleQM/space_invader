@@ -37,6 +37,16 @@ summary(LB)#bingo! looks like it worked!
 library(dplyr)
 
 lb_rep<-aggregate(data=LB, SumOfADULTS~ Year+week+TREAT+HABITAT+REPLICATE+SPID, FUN=sum)
+lb_rep_N<-aggregate(data=LB, SumOfADULTS~ Year+week+TREAT+HABITAT+REPLICATE+SPID, FUN=length)
+#change variable name to reflect that it's number of traps
+lb_rep_N<-rename(lb_rep_N, TRAPS=SumOfADULTS)
+#merge trap data into lb_rep data frame
+
+lb_weekly<-merge(lb_rep, lb_rep_N)
+#cull data prior to Harmonia's arrival in 1994
+lb_weekly1994<-lb_weekly[which(lb_weekly$Year>=1994),]
+
+
 
 library(ggplot2)
 
@@ -349,4 +359,23 @@ weather$prec.accum.0<-accum.precip.time(weather$precipitation, weather$DOY, star
 #and plot that thing to look for problems:
 plot(weather$DOY, weather$prec.accum.0)
 
+#now let's put together a weekly 'weather report'
 
+weather1<-group_by(weather, year, week)
+
+weather_weekly<-summarize(weather1,
+                          mean.prec=mean(precipitation),
+                          rain.days=sum(rain.days),
+                          weekly.precip=max(prec.accum),
+                          yearly.precip.accum=max(prec.accum.0),
+                          max.rainfall=max(precipitation),
+                          mean.temp=mean(temp_mean_cleaned),
+                          min.temp=min(temp_min_cleaned),
+                          max.temp=max(temp_max_cleaned),
+                          weekly.dd=max(dd),
+                          yearly.dd.accum=max(dd.accum),
+                          )
+
+#let's merge in the weather data to the ladybeetle data
+
+#let's do some quick plots to look at ladyeetles by various environmental parameters
