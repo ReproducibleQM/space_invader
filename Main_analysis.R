@@ -47,13 +47,32 @@ lb_weekly<-merge(lb_rep, lb_rep_N)
 lb_weekly1994<-lb_weekly[which(lb_weekly$Year>=1994),]
 
 
-
 library(ggplot2)
 
 lb_boxplot<-ggplot(lb_rep, aes(x=TREAT, y=SumOfADULTS, fill=SPID))+
-  geom_boxplot()+scale_y_log10()
-
+  geom_boxplot()
 lb_boxplot
+
+#let's try re-aggregating our data at a yearly resolution
+lb_yearly_captures<-aggregate(data=lb_weekly1994, SumOfADULTS~ Year+TREAT+HABITAT+REPLICATE+SPID, FUN=sum)
+lb_yearly_N<-aggregate(data=lb_weekly1994, TRAPS~ Year+TREAT+HABITAT+REPLICATE+SPID, FUN=sum)
+
+#merge yearly captures with sampling intensity data
+lb_yearly<-merge(lb_yearly_captures, lb_yearly_N)
+#compute a new variable- average number of beetles per trap
+lb_yearly$pertrap<-lb_yearly$SumOfADULTS/lb_yearly$TRAPS
+
+#let's repeat the boxplot but with yearly data
+lb_yearly_boxplot<-ggplot(lb_yearly, aes(x=TREAT, y=pertrap, fill=SPID))+
+  geom_boxplot()
+lb_yearly_boxplot
+
+#let's look at the populations over time instead
+lb_yearly_plot<-ggplot(lb_yearly, aes(x=Year, y=SumOfADULTS, fill=SPID, color=SPID))+
+  geom_point(pch=21)+
+  geom_smooth()
+lb_yearly_plot
+
 ###################################
 #Begin weather data processing
 
@@ -377,5 +396,8 @@ weather_weekly<-summarize(weather1,
                           )
 
 #let's merge in the weather data to the ladybeetle data
+#first rename the year column in one of the datasets
+lb_weekly1994<-rename(lb_weekly1994, year=Year)
+lb_all<-merge(lb_weekly1994, weather_weekly)
 
 #let's do some quick plots to look at ladyeetles by various environmental parameters
