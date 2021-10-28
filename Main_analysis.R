@@ -400,4 +400,73 @@ weather_weekly<-summarize(weather1,
 lb_weekly1994<-rename(lb_weekly1994, year=Year)
 lb_all<-merge(lb_weekly1994, weather_weekly)
 
-#let's do some quick plots to look at ladyeetles by various environmental parameters
+#let's do some quick plots to look at ladybeetles by various environmental parameters
+lb_all$pertrap<-lb_all$SumOfADULTS/lb_all$TRAPS
+
+#let's look at these data by week
+lb_summary_week<-ggplot(lb_all, aes(x=week, y=pertrap, fill=year))+
+  #geom_point(pch=21)+
+  scale_fill_binned()+
+  geom_smooth(aes(color=as.factor(year)))+
+  facet_wrap(vars(SPID), nrow=2)
+
+lb_summary_week
+
+#ok, same thing but for degree day accumulation
+lb_summary_dd<-ggplot(lb_all, aes(x=yearly.dd.accum, y=pertrap, fill=year))+
+  #geom_point(pch=21)+
+  scale_fill_binned()+
+  geom_smooth(aes(color=as.factor(year)))+
+  facet_wrap(vars(SPID), nrow=2)
+
+lb_summary_dd
+
+#let's look at trapping frequency and DD
+lb_summary_traps<-ggplot(lb_all, aes(x=yearly.dd.accum, y=TRAPS, fill=year))+
+  #geom_point(pch=21)+
+  scale_fill_binned()+
+  geom_smooth(aes(color=as.factor(year)))+
+  facet_wrap(vars(SPID), nrow=2)
+
+lb_summary_traps
+
+#yikes! What are all those 10 trap observations? Christie to investigate!
+
+#let's look at rain days
+lb_summary_raindays<-ggplot(lb_all, aes(x=rain.days, y=pertrap, fill=year))+
+  #geom_point(pch=21)+
+  scale_fill_binned()+
+  geom_smooth(aes(color=as.factor(year)))+
+  facet_wrap(vars(SPID), nrow=2)
+
+lb_summary_raindays
+
+#let's look at mean temp
+lb_summary_meantemp<-ggplot(lb_all, aes(x=mean.temp, y=pertrap, fill=year))+
+  #geom_point(pch=21)+
+  scale_fill_binned()+
+  geom_smooth(aes(color=as.factor(year)))+
+  facet_wrap(vars(SPID), nrow=2)
+
+lb_summary_meantemp
+
+#let's look at min temp
+lb_summary_mintemp<-ggplot(lb_all, aes(x=min.temp, y=pertrap, fill=year))+
+  #geom_point(pch=21)+
+  scale_fill_binned()+
+  geom_smooth(aes(color=as.factor(year)))+
+  facet_wrap(vars(SPID), nrow=2)
+
+lb_summary_mintemp
+
+#let's look at max rainfall
+lb_summary_maxrainfall<-ggplot(lb_all, aes(x=max.rainfall, y=pertrap, fill=year))+
+  #geom_point(pch=21)+
+  scale_fill_binned()+
+  geom_smooth(aes(color=as.factor(year)))+
+  facet_wrap(vars(SPID), nrow=2)
+
+lb_summary_maxrainfall
+
+
+
