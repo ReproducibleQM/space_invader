@@ -468,5 +468,61 @@ lb_summary_maxrainfall<-ggplot(lb_all, aes(x=max.rainfall, y=pertrap, fill=year)
 
 lb_summary_maxrainfall
 
+#let's look at some ordination- we'll visualize and conduct analyses to describe how 
+# the two species are using space, over time.
+library(reshape2)
+library(vegan)
+
+
+
+#create a matrix of observations by community
+#create parallel yearly and weekly analyses
+landscape.year<-dcast(lb_all, year+REPLICATE+SPID~HABITAT,
+                      value.var ="SumOfADULTS",  sum)
+
+landscape.week<-dcast(lb_all, year+week+SPID~HABITAT,
+                      value.var ="SumOfADULTS",  sum)
+#because we have some rep by week combinations with zero observations, we must remove them prior to analysis
+landscape.week.1<-landscape.week[rowSums(landscape.week[4:12])>1,]
+
+#strip out the context- yes I know! this seems counter-intuitive and awful
+#but vegan (and most community analysis packages) want your response variable as its own object
+
+com.matrix.year<-landscape.year[,4:12]
+com.matrix.week<-landscape.week.1[,4:12]
+
+#skipping a few steps but skeletonizing
+
+ord.year<-metaMDS(com.matrix.year, autotransform=TRUE)
+ord.year
+
+plot(ord.year, disp='sites', type='n')
+points(ord.year, display="sites", select=which(landscape.year$SPID=="HAXY"), pch=19, col="orange")
+points(ord.year, display="sites", select=which(landscape.year$SPID=="C7"), pch=15, col="red")
+
+fit.year<-envfit(ord.year~year+REPLICATE, data=landscape.year, perm=999)
+summary(fit.year)
+fit.year
+
+plot(fit.year)
+
+
+#and now for week
+
+ord.week<-metaMDS(com.matrix.week, autotransform=TRUE)
+ord.week
+
+plot(ord.week, disp='sites', type='n')
+points(ord.week, display="sites", select=which(landscape.week.1$SPID=="HAXY"), pch=19, col="orange")
+points(ord.week, display="sites", select=which(landscape.week.1$SPID=="C7"), pch=15, col="red")
+
+#bring the relevant environmental data back into our enviromnetal frame
+weekly.context<-merge(landscape.week.1, weather_weekly, all.x = T)
+
+fit.week<-envfit(ord.week~year+rain.days+weekly.precip+max.rainfall+yearly.precip.accum+max.temp+yearly.dd.accum, data=weekly.context, perm=999)
+summary(fit.week)
+fit.week
+
+plot(fit.week)
 
 
