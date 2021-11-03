@@ -513,16 +513,36 @@ ord.week<-metaMDS(com.matrix.week, autotransform=TRUE)
 ord.week
 
 plot(ord.week, disp='sites', type='n')
-points(ord.week, display="sites", select=which(landscape.week.1$SPID=="HAXY"), pch=19, col="orange")
-points(ord.week, display="sites", select=which(landscape.week.1$SPID=="C7"), pch=15, col="red")
+points(ord.week, display="sites", select=which(landscape.week.1$SPID=="HAXY"), pch=19, cex=0.5,col="orange")
+points(ord.week, display="sites", select=which(landscape.week.1$SPID=="C7"), pch=15, cex=0.5, col="red")
+#ordilabel(ord.week, display="species", cex=0.75, col="black")
 
 #bring the relevant environmental data back into our enviromnetal frame
 weekly.context<-merge(landscape.week.1, weather_weekly, all.x = T)
 
-fit.week<-envfit(ord.week~year+rain.days+weekly.precip+max.rainfall+yearly.precip.accum+max.temp+yearly.dd.accum, data=weekly.context, perm=999)
+#is the spatiotemporal distribution of harmonia different from that of C7?
+#we will do a permanova to check
+specmod<-adonis(com.matrix.week~SPID, data=landscape.week.1, method="bray")
+specmod
+
+#we're performing a model selection, using backwards selection from all environmental variables
+#we're using the P value and R square, and paying attention to which variables seem too colinear to include
+
+fit.week<-envfit(ord.week~year+
+                   yearly.precip.accum+yearly.dd.accum,
+                 data=weekly.context, perm=999)
 summary(fit.week)
 fit.week
 
 plot(fit.week)
+
+#save to pdf
+pdf("plots/NMDS_weekly.pdf", height=4, width=4)
+plot(ord.week, disp='sites', type='n')
+points(ord.week, display="sites", select=which(landscape.week.1$SPID=="HAXY"), pch=19, cex=0.5,col="orange")
+points(ord.week, display="sites", select=which(landscape.week.1$SPID=="C7"), pch=15, cex=0.5, col="red")
+
+plot(fit.week)
+dev.off()
 
 
