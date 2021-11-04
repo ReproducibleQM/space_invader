@@ -545,4 +545,48 @@ points(ord.week, display="sites", select=which(landscape.week.1$SPID=="C7"), pch
 plot(fit.week)
 dev.off()
 
+#let's create a quadratic variable that we can play with in our linear model
+
+lb_all$yearly.dd.accum2<-lb_all$yearly.dd.accum^2
+
+
+#now let's build a simple linear model using the quadratic structure to see what the fit looks like
+
+lm_lb<-lm(SumOfADULTS~SPID*yearly.dd.accum2+SPID*yearly.dd.accum, data=lb_all)
+summary(lm_lb)
+AIC(lm_lb)
+
+# eq<-function(x){-2.257e-07*x^2 +5.746e-04*x+1.217e+00}
+# curve(eq, from=1, to=1000)
+
+#let's build this as a GLM instead
+library(MASS)
+
+glm_lb<-glm(SumOfADULTS~SPID*yearly.dd.accum2+SPID*yearly.dd.accum, family=negative.binomial(0.3), data=lb_all)
+summary(glm_lb)
+AIC(glm_lb)
+
+#let's directly plot the C7 curve
+eq<-function(x){exp( -1.635e-06*x^2 + 1.468e-03*x+2.766e-01)}
+curve(eq, from=1, to=1000)
+
+#and for Harmonia
+eq<-function(x){exp((-1.635e-06+2.174e-06)*x^2 + (1.468e-03-1.343e-03)*x+(2.766e-01-3.704e-01 ))}
+curve(eq, from=1, to=1000)
+
+
+
+# let's rough in our gam model
+library(mgcv)
+library(visreg)
+
+gam_lb<-gam(SumOfADULTS~s(yearly.dd.accum, by=as.factor(SPID), sp=0.5), data=lb_all)
+summary(gam_lb)
+AIC(gam_lb)
+
+#let's visualize this!
+visreg(gam_lb, "yearly.dd.accum", "SPID", partial=FALSE, rug=FALSE, 
+       overlay=TRUE)
+
+
 
