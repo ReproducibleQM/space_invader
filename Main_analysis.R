@@ -46,6 +46,12 @@ lb_weekly<-merge(lb_rep, lb_rep_N)
 #cull data prior to Harmonia's arrival in 1994
 lb_weekly1994<-lb_weekly[which(lb_weekly$Year>=1994),]
 
+#let's figure out how to re-catagorize our treatments. Remember T1-4 are annual, 5-7 are perennial, and the rest are forest
+lb_weekly1994$TREAT_CAT<-if(lb_weekly1994$TREAT==0)
+
+#remember to cull the data at a standard time point  
+    
+  
 
 library(ggplot2)
 
@@ -580,13 +586,22 @@ curve(eq, from=1, to=1000)
 library(mgcv)
 library(visreg)
 
-gam_lb<-gam(SumOfADULTS~s(yearly.dd.accum, by=as.factor(SPID), sp=0.5), data=lb_all)
+gam_lb<-gam(SumOfADULTS~s(year, by=c(as.factor(HABITAT)), sp=0.5)+
+                          s(yearly.dd.accum, by=as.factor(SPID), sp=0.5)+
+              s(rain.days, by=as.factor(SPID), sp=0.5, k=3)+HABITAT+
+              offset(log(TRAPS)), data=lb_all)
 summary(gam_lb)
 AIC(gam_lb)
 
 #let's visualize this!
 visreg(gam_lb, "yearly.dd.accum", "SPID", partial=FALSE, rug=FALSE, 
        overlay=TRUE)
+
+visreg(gam_lb, "rain.days", "SPID", partial=FALSE, rug=FALSE, 
+       overlay=TRUE)
+
+visreg(gam_lb, "year", "HABITAT", partial=FALSE, rug=FALSE, 
+       overlay=FALSE)
 
 
 
