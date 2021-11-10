@@ -46,10 +46,16 @@ lb_weekly<-merge(lb_rep, lb_rep_N)
 #cull data prior to Harmonia's arrival in 1994
 lb_weekly1994<-lb_weekly[which(lb_weekly$Year>=1994),]
 
-#let's figure out how to re-catagorize our treatments. Remember T1-4 are annual, 5-7 are perennial, and the rest are forest
-lb_weekly1994$TREAT_CAT<-if(lb_weekly1994$TREAT==0)
+#let's figure out how to re-categorize our treatments. Remember T1-4 are annual, 5-7 are perennial, and the rest are forest
+annuallist<-c("T1","T2", "T3", "T4" )
+perlist<-c("T5", "T6", "T7")
+lb_weekly1994$TREAT_CAT<-ifelse(lb_weekly1994$TREAT %in% annuallist, "Annual",
+                                (ifelse(lb_weekly1994$TREAT %in% perlist, "Perennial", "Forest")))
 
-#remember to cull the data at a standard time point  
+#remember to cull the data at a standard time point 
+#(we use DOY 222 in other studies which corresponds to week 32)
+
+lb_weekly1994_culled<-lb_weekly1994[which(lb_weekly1994$week<=33),]
     
   
 
@@ -60,8 +66,8 @@ lb_boxplot<-ggplot(lb_rep, aes(x=TREAT, y=SumOfADULTS, fill=SPID))+
 lb_boxplot
 
 #let's try re-aggregating our data at a yearly resolution
-lb_yearly_captures<-aggregate(data=lb_weekly1994, SumOfADULTS~ Year+TREAT+HABITAT+REPLICATE+SPID, FUN=sum)
-lb_yearly_N<-aggregate(data=lb_weekly1994, TRAPS~ Year+TREAT+HABITAT+REPLICATE+SPID, FUN=sum)
+lb_yearly_captures<-aggregate(data=lb_weekly1994_culled, SumOfADULTS~ year+TREAT+HABITAT+REPLICATE+SPID, FUN=sum)
+lb_yearly_N<-aggregate(data=lb_weekly1994_culled, TRAPS~ year+TREAT+HABITAT+REPLICATE+SPID, FUN=sum)
 
 #merge yearly captures with sampling intensity data
 lb_yearly<-merge(lb_yearly_captures, lb_yearly_N)
@@ -74,7 +80,7 @@ lb_yearly_boxplot<-ggplot(lb_yearly, aes(x=TREAT, y=pertrap, fill=SPID))+
 lb_yearly_boxplot
 
 #let's look at the populations over time instead
-lb_yearly_plot<-ggplot(lb_yearly, aes(x=Year, y=SumOfADULTS, fill=SPID, color=SPID))+
+lb_yearly_plot<-ggplot(lb_yearly, aes(x=year, y=SumOfADULTS, fill=SPID, color=SPID))+
   geom_point(pch=21)+
   geom_smooth()
 lb_yearly_plot
@@ -403,8 +409,8 @@ weather_weekly<-summarize(weather1,
 
 #let's merge in the weather data to the ladybeetle data
 #first rename the year column in one of the datasets
-lb_weekly1994<-rename(lb_weekly1994, year=Year)
-lb_all<-merge(lb_weekly1994, weather_weekly)
+lb_weekly1994_culled<-rename(lb_weekly1994culled, year=Year)
+lb_all<-merge(lb_weekly1994_culled, weather_weekly)
 
 #let's do some quick plots to look at ladybeetles by various environmental parameters
 lb_all$pertrap<-lb_all$SumOfADULTS/lb_all$TRAPS
@@ -586,7 +592,7 @@ curve(eq, from=1, to=1000)
 library(mgcv)
 library(visreg)
 
-gam_lb<-gam(SumOfADULTS~s(year, by=c(as.factor(HABITAT)), sp=0.5)+
+gam_lb<-gam(SumOfADULTS~s(year, by=c(as.factor(SPID)), sp=0.5)+
                           s(yearly.dd.accum, by=as.factor(SPID), sp=0.5)+
               s(rain.days, by=as.factor(SPID), sp=0.5, k=3)+HABITAT+
               offset(log(TRAPS)), data=lb_all)
@@ -600,8 +606,36 @@ visreg(gam_lb, "yearly.dd.accum", "SPID", partial=FALSE, rug=FALSE,
 visreg(gam_lb, "rain.days", "SPID", partial=FALSE, rug=FALSE, 
        overlay=TRUE)
 
-visreg(gam_lb, "year", "HABITAT", partial=FALSE, rug=FALSE, 
-       overlay=FALSE)
+visreg(gam_lb, "year", "SPID", partial=FALSE, rug=FALSE, 
+       overlay=TRUE)
 
 
+#ok, I think we found the method we should use! here's the tutorial:
+# https://fromthebottomoftheheap.net/2014/05/15/identifying-periods-of-change-with-gams/
 
+#first we create a new dataframe that we can use our model to predict the values for
+
+#create data for harmonia, holding everything constant but degree days
+newData.C7 <- with(lb_all,
+                  data.frame(yearly.dd.accum = seq(0, 1500, length = 1500),
+                             TRAPS=5, 
+                             year=mean(year), 
+                             rain.days=median(rain.days), 
+                             SPID="C7", 
+                             HABITAT="alfalfa"))
+
+#make the same frame but for 1 more degday
+newData.C7.1<- with(lb_all,
+                     data.frame(yearly.dd.accum = seq(1, 1501, length = 1500),
+                                TRAPS=5, 
+                                year=mean(year), 
+                                rain.days=median(rain.days), 
+                                SPID="C7", 
+                                HABITAT="alfalfa"))
+
+#make predictions
+predict.dd.C7<-predict(gam_lb, newData.C7, type="link")
+predict.dd.C7.1<-predict(gam_lb, newData.C7.1, type="link")
+
+dd.C7.der<-as.data.frame(cbind(newData.C7$yearly.dd.accum, predict.dd.C7, predict.dd.C7.1))
+dd.C7.der$slope<-(dd.C7.der$predict.dd.C7.1-dd.C7.der$predict.dd.C7)/1
