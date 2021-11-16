@@ -7,15 +7,16 @@ LB<-read.csv(file="data/KBS_Haxy_C7_1989-2020.csv", header=T,
              na.strings=c(NA))
 
 
-##### enough of all that, what about real data?
+##### let's take a look at this data
 summary(LB)
 
 #clean data
 #first, we fix dates, make them ISO'ed
 library(lubridate)
-
-LB$newdate<-mdy(LB$DATE)#parses the date format used for the forest plots
-LB$newdate<-mdy_hm(LB$DATE)#parses the date format used in the main plots
+# 
+# #not run
+# LB$newdate<-mdy(LB$DATE)#parses the date format used for the forest plots
+# LB$newdate<-mdy_hm(LB$DATE)#parses the date format used in the main plots
 
 #well, crap, neither command gets all of the dates to parse correctly
 #we have an issue because data from the main site exported with time stamps but 
@@ -53,9 +54,11 @@ lb_weekly1994$TREAT_CAT<-ifelse(lb_weekly1994$TREAT %in% annuallist, "Annual",
                                 (ifelse(lb_weekly1994$TREAT %in% perlist, "Perennial", "Forest")))
 
 #remember to cull the data at a standard time point 
-#(we use DOY 222 in other studies which corresponds to week 32)
+#(we use DOY 222 in other studies which corresponds to week 32, 
+# but this cuts out a major harmonia activity peak, so let's use first week of sept
+# =week 35)
 
-lb_weekly1994_culled<-lb_weekly1994[which(lb_weekly1994$week<=33),]
+lb_weekly1994_culled<-lb_weekly1994[which(lb_weekly1994$week<=35),]
     
   
 
@@ -66,8 +69,8 @@ lb_boxplot<-ggplot(lb_rep, aes(x=TREAT, y=SumOfADULTS, fill=SPID))+
 lb_boxplot
 
 #let's try re-aggregating our data at a yearly resolution
-lb_yearly_captures<-aggregate(data=lb_weekly1994_culled, SumOfADULTS~ year+TREAT+HABITAT+REPLICATE+SPID, FUN=sum)
-lb_yearly_N<-aggregate(data=lb_weekly1994_culled, TRAPS~ year+TREAT+HABITAT+REPLICATE+SPID, FUN=sum)
+lb_yearly_captures<-aggregate(data=lb_weekly1994_culled, SumOfADULTS~ Year+TREAT+HABITAT+REPLICATE+SPID, FUN=sum)
+lb_yearly_N<-aggregate(data=lb_weekly1994_culled, TRAPS~ Year+TREAT+HABITAT+REPLICATE+SPID, FUN=sum)
 
 #merge yearly captures with sampling intensity data
 lb_yearly<-merge(lb_yearly_captures, lb_yearly_N)
@@ -80,7 +83,7 @@ lb_yearly_boxplot<-ggplot(lb_yearly, aes(x=TREAT, y=pertrap, fill=SPID))+
 lb_yearly_boxplot
 
 #let's look at the populations over time instead
-lb_yearly_plot<-ggplot(lb_yearly, aes(x=year, y=SumOfADULTS, fill=SPID, color=SPID))+
+lb_yearly_plot<-ggplot(lb_yearly, aes(x=Year, y=SumOfADULTS, fill=SPID, color=SPID))+
   geom_point(pch=21)+
   geom_smooth()
 lb_yearly_plot
@@ -409,8 +412,47 @@ weather_weekly<-summarize(weather1,
 
 #let's merge in the weather data to the ladybeetle data
 #first rename the year column in one of the datasets
-lb_weekly1994_culled<-rename(lb_weekly1994culled, year=Year)
+lb_weekly1994_culled<-rename(lb_weekly1994_culled, year=Year)
 lb_all<-merge(lb_weekly1994_culled, weather_weekly)
+
+#while we're at this, let's make some yearly summary data that will allow us to
+#characterize weather by year. Since it looks like seasonality plays a role in within-year 
+#partitioning (spoilers!) let's get some accumulations at key points in the season- let's do
+#week 25, 30, and 35 and get dd accum, precip accum for each year
+
+keypoints<-c(20, 25, 30, 35)
+
+weather_keypoints<-weather_weekly[which(weather_weekly$week  %in% keypoints),]
+
+#cull out the non-accumulated data
+
+weather_keypoints1<-weather_keypoints[,c(1:2, 6, 12)]
+
+#now we need to recast each of the response columns as their own unique responses by week
+#dd accum
+dd.year<-dcast(weather_keypoints1, year~week,
+                      value.var ="yearly.dd.accum",  sum)
+colnames(dd.year)<-c("year", "dd20", "dd25", "dd30", "dd35")
+#create metrics for DIFFERENCE from last time point too
+dd.year$dd25.dif<-dd.year$dd25-dd.year$dd20
+dd.year$dd30.dif<-dd.year$dd30-dd.year$dd25
+dd.year$dd35.dif<-dd.year$dd35-dd.year$dd30
+
+#precip
+precip.year<-dcast(weather_keypoints1, year~week,
+               value.var ="yearly.precip.accum",  sum)
+
+colnames(precip.year)<-c("year", "precip20", "precip25", "precip30", "precip35")
+
+#create metrics for DIFFERENCE from last time point too
+precip.year$precip25.dif<-precip.year$precip25-precip.year$precip20
+precip.year$precip30.dif<-precip.year$precip30-precip.year$precip25
+precip.year$precip35.dif<-precip.year$precip35-precip.year$precip30
+
+
+#ok, now we can merge this into a yearly weather summary matrix
+
+weather_yearly<-merge(dd.year, precip.year)
 
 #let's do some quick plots to look at ladybeetles by various environmental parameters
 lb_all$pertrap<-lb_all$SumOfADULTS/lb_all$TRAPS
@@ -443,6 +485,8 @@ lb_summary_traps<-ggplot(lb_all, aes(x=yearly.dd.accum, y=TRAPS, fill=year))+
 lb_summary_traps
 
 #yikes! What are all those 10 trap observations? Christie to investigate!
+#looks like there are a few rare occasions that the LB were sampled twice in one week (Monday, then Friday?)
+#offset in models should account for the worst of that.
 
 #let's look at rain days
 lb_summary_raindays<-ggplot(lb_all, aes(x=rain.days, y=pertrap, fill=year))+
@@ -495,7 +539,7 @@ landscape.year<-dcast(lb_all, year+REPLICATE+SPID~HABITAT,
 landscape.week<-dcast(lb_all, year+week+SPID~HABITAT,
                       value.var ="SumOfADULTS",  sum)
 #because we have some rep by week combinations with zero observations, we must remove them prior to analysis
-landscape.week.1<-landscape.week[rowSums(landscape.week[4:12])>1,]
+landscape.week.1<-landscape.week[rowSums(landscape.week[4:12])>2,]
 
 #strip out the context- yes I know! this seems counter-intuitive and awful
 #but vegan (and most community analysis packages) want your response variable as its own object
@@ -503,7 +547,7 @@ landscape.week.1<-landscape.week[rowSums(landscape.week[4:12])>1,]
 com.matrix.year<-landscape.year[,4:12]
 com.matrix.week<-landscape.week.1[,4:12]
 
-#skipping a few steps but skeletonizing
+#set up ordination with year data
 
 ord.year<-metaMDS(com.matrix.year, autotransform=TRUE)
 ord.year
@@ -511,12 +555,35 @@ ord.year
 plot(ord.year, disp='sites', type='n')
 points(ord.year, display="sites", select=which(landscape.year$SPID=="HAXY"), pch=19, col="orange")
 points(ord.year, display="sites", select=which(landscape.year$SPID=="C7"), pch=15, col="red")
+ordilabel(ord.year, display="species", cex=0.75, col="black")
 
-fit.year<-envfit(ord.year~year+REPLICATE, data=landscape.year, perm=999)
+#bring the relevant environmental data back into our enviromental frame
+yearly.context<-merge(landscape.year, weather_yearly, all.x = T)
+
+
+#is the spatiotemporal distribution of harmonia different from that of C7 over years?
+#we will do a permanova to check
+specmod.y<-adonis(com.matrix.year~SPID, data=landscape.year, method="bray")
+specmod.y
+
+
+fit.year<-envfit(ord.year~year+dd35.dif+
+                   precip35.dif, data=yearly.context, perm=999)
 summary(fit.year)
 fit.year
 
+
 plot(fit.year)
+
+#save to pdf
+pdf("plots/NMDS_yearly.pdf", height=6, width=6)
+plot(ord.year, disp='sites', type='n')
+points(ord.year, display="sites", select=which(landscape.year$SPID=="HAXY"), pch=19, cex=0.5,col="orange")
+points(ord.year, display="sites", select=which(landscape.year$SPID=="C7"), pch=15, cex=0.5, col="red")
+plot(fit.year)
+ordilabel(ord.year, display="species", cex=0.75, col="black")
+dev.off()
+
 
 
 #and now for week
@@ -527,9 +594,9 @@ ord.week
 plot(ord.week, disp='sites', type='n')
 points(ord.week, display="sites", select=which(landscape.week.1$SPID=="HAXY"), pch=19, cex=0.5,col="orange")
 points(ord.week, display="sites", select=which(landscape.week.1$SPID=="C7"), pch=15, cex=0.5, col="red")
-#ordilabel(ord.week, display="species", cex=0.75, col="black")
+ordilabel(ord.week, display="species", cex=0.75, col="black")
 
-#bring the relevant environmental data back into our enviromnetal frame
+#bring the relevant environmental data back into our enviromental frame
 weekly.context<-merge(landscape.week.1, weather_weekly, all.x = T)
 
 #is the spatiotemporal distribution of harmonia different from that of C7?
@@ -549,46 +616,19 @@ fit.week
 plot(fit.week)
 
 #save to pdf
-pdf("plots/NMDS_weekly.pdf", height=4, width=4)
+pdf("plots/NMDS_weekly.pdf", height=6, width=6)
 plot(ord.week, disp='sites', type='n')
 points(ord.week, display="sites", select=which(landscape.week.1$SPID=="HAXY"), pch=19, cex=0.5,col="orange")
 points(ord.week, display="sites", select=which(landscape.week.1$SPID=="C7"), pch=15, cex=0.5, col="red")
-
+ordilabel(ord.week, display="species", cex=0.75, col="black")
 plot(fit.week)
 dev.off()
 
-#let's create a quadratic variable that we can play with in our linear model
-
-lb_all$yearly.dd.accum2<-lb_all$yearly.dd.accum^2
-
-
-#now let's build a simple linear model using the quadratic structure to see what the fit looks like
-
-lm_lb<-lm(SumOfADULTS~SPID*yearly.dd.accum2+SPID*yearly.dd.accum, data=lb_all)
-summary(lm_lb)
-AIC(lm_lb)
-
-# eq<-function(x){-2.257e-07*x^2 +5.746e-04*x+1.217e+00}
-# curve(eq, from=1, to=1000)
-
-#let's build this as a GLM instead
-library(MASS)
-
-glm_lb<-glm(SumOfADULTS~SPID*yearly.dd.accum2+SPID*yearly.dd.accum, family=negative.binomial(0.3), data=lb_all)
-summary(glm_lb)
-AIC(glm_lb)
-
-#let's directly plot the C7 curve
-eq<-function(x){exp( -1.635e-06*x^2 + 1.468e-03*x+2.766e-01)}
-curve(eq, from=1, to=1000)
-
-#and for Harmonia
-eq<-function(x){exp((-1.635e-06+2.174e-06)*x^2 + (1.468e-03-1.343e-03)*x+(2.766e-01-3.704e-01 ))}
-curve(eq, from=1, to=1000)
 
 
 
-# let's rough in our gam model
+# let's rough in our gam models. Just like with the multivariate analysis, we'll look at
+#two different scales- within year dynamics and between year dynamics
 library(mgcv)
 library(visreg)
 
@@ -597,7 +637,6 @@ gam_lb<-gam(SumOfADULTS~s(year, by=c(as.factor(SPID)), sp=0.5)+
               s(rain.days, by=as.factor(SPID), sp=0.5, k=3)+HABITAT+
               offset(log(TRAPS)), data=lb_all)
 summary(gam_lb)
-AIC(gam_lb)
 
 #let's visualize this!
 visreg(gam_lb, "yearly.dd.accum", "SPID", partial=FALSE, rug=FALSE, 
@@ -639,3 +678,25 @@ predict.dd.C7.1<-predict(gam_lb, newData.C7.1, type="link")
 
 dd.C7.der<-as.data.frame(cbind(newData.C7$yearly.dd.accum, predict.dd.C7, predict.dd.C7.1))
 dd.C7.der$slope<-(dd.C7.der$predict.dd.C7.1-dd.C7.der$predict.dd.C7)/1
+
+
+#Start of population growth dd.accum
+#Peak population growth dd.accum
+#other inflection points dd.accum
+
+#look at the shape of the model for other environmental variables
+#box plot of residuals by species and habitat
+
+#Patterns over the years
+  #this is a timeseries figure
+
+#within year phenology
+  #gam models and outputs
+
+#habitat use when controlling for other patterns
+  #gam output into a boxplot figure
+
+#spatio-temporal differences
+  #multivariate analysis
+
+
