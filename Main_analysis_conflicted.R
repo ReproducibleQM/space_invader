@@ -7,16 +7,15 @@ LB<-read.csv(file="data/KBS_Haxy_C7_1989-2020.csv", header=T,
              na.strings=c(NA))
 
 
-##### let's take a look at this data
+##### enough of all that, what about real data?
 summary(LB)
 
 #clean data
 #first, we fix dates, make them ISO'ed
 library(lubridate)
-# 
-# #not run
-# LB$newdate<-mdy(LB$DATE)#parses the date format used for the forest plots
-# LB$newdate<-mdy_hm(LB$DATE)#parses the date format used in the main plots
+
+LB$newdate<-mdy(LB$DATE)#parses the date format used for the forest plots
+LB$newdate<-mdy_hm(LB$DATE)#parses the date format used in the main plots
 
 #well, crap, neither command gets all of the dates to parse correctly
 #we have an issue because data from the main site exported with time stamps but 
@@ -38,61 +37,13 @@ summary(LB)#bingo! looks like it worked!
 library(dplyr)
 
 lb_rep<-aggregate(data=LB, SumOfADULTS~ Year+week+TREAT+HABITAT+REPLICATE+SPID, FUN=sum)
-lb_rep_N<-aggregate(data=LB, SumOfADULTS~ Year+week+TREAT+HABITAT+REPLICATE+SPID, FUN=length)
-#change variable name to reflect that it's number of traps
-lb_rep_N<-rename(lb_rep_N, TRAPS=SumOfADULTS)
-#merge trap data into lb_rep data frame
-
-lb_weekly<-merge(lb_rep, lb_rep_N)
-#cull data prior to Harmonia's arrival in 1994
-lb_weekly1994<-lb_weekly[which(lb_weekly$Year>=1994),]
-
-#let's figure out how to re-categorize our treatments. Remember T1-4 are annual, 5-7 are perennial, and the rest are forest
-annuallist<-c("T1","T2", "T3", "T4" )
-perlist<-c("T5", "T6", "T7")
-lb_weekly1994$TREAT_CAT<-ifelse(lb_weekly1994$TREAT %in% annuallist, "Annual",
-                                (ifelse(lb_weekly1994$TREAT %in% perlist, "Perennial", "Forest")))
-
-#remember to cull the data at a standard time point 
-#(we use DOY 222 in other studies which corresponds to week 32, 
-# but this cuts out a major harmonia activity peak, so let's use first week of sept
-# =week 35)
-
-lb_weekly1994_culled<-lb_weekly1994[which(lb_weekly1994$week<=35),]
-    
-  
 
 library(ggplot2)
 
 lb_boxplot<-ggplot(lb_rep, aes(x=TREAT, y=SumOfADULTS, fill=SPID))+
-  geom_boxplot()
+  geom_boxplot()+scale_y_log10()
+
 lb_boxplot
-
-#let's try re-aggregating our data at a yearly resolution
-lb_yearly_captures<-aggregate(data=lb_weekly1994_culled, SumOfADULTS~ Year+TREAT+HABITAT+REPLICATE+SPID, FUN=sum)
-lb_yearly_N<-aggregate(data=lb_weekly1994_culled, TRAPS~ Year+TREAT+HABITAT+REPLICATE+SPID, FUN=sum)
-
-
-#also, just so we know what we're comparing here, how many of each species did we catch?
-lb_tots<-aggregate(data=lb_weekly1994_culled, SumOfADULTS~ SPID, FUN=sum)
-lb_tots
-
-#merge yearly captures with sampling intensity data
-lb_yearly<-merge(lb_yearly_captures, lb_yearly_N)
-#compute a new variable- average number of beetles per trap
-lb_yearly$pertrap<-lb_yearly$SumOfADULTS/lb_yearly$TRAPS
-
-#let's repeat the boxplot but with yearly data
-lb_yearly_boxplot<-ggplot(lb_yearly, aes(x=TREAT, y=pertrap, fill=SPID))+
-  geom_boxplot()
-lb_yearly_boxplot
-
-#let's look at the populations over time instead
-lb_yearly_plot<-ggplot(lb_yearly, aes(x=Year, y=SumOfADULTS, fill=SPID, color=SPID))+
-  geom_point(pch=21)+
-  geom_smooth()
-lb_yearly_plot
-
 ###################################
 #Begin weather data processing
 
@@ -398,6 +349,7 @@ weather$prec.accum.0<-accum.precip.time(weather$precipitation, weather$DOY, star
 #and plot that thing to look for problems:
 plot(weather$DOY, weather$prec.accum.0)
 
+<<<<<<< HEAD
 #now let's put together a weekly 'weather report'
 
 weather1<-group_by(weather, year, week)
@@ -871,4 +823,6 @@ visreg(gam_c7_yearly, "precip25.dif", partial=FALSE, rug=FALSE,
 
 
 
+=======
+>>>>>>> d29f431ca8754054e11076075d4b1ed5fb7b7503
 
