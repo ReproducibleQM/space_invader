@@ -435,6 +435,7 @@ weather_keypoints1<-weather_keypoints[,c(1:2, 6, 12)]
 
 #now we need to recast each of the response columns as their own unique responses by week
 #dd accum
+library(reshape2)
 dd.year<-dcast(weather_keypoints1, year~week,
                       value.var ="yearly.dd.accum",  sum)
 colnames(dd.year)<-c("year", "dd20", "dd25", "dd30", "dd35")
@@ -639,23 +640,27 @@ library(visreg)
 
 #start withe the drivers of within-year variation
 
-gam_lb<-gam(SumOfADULTS~s(yearly.dd.accum, by=as.factor(SPID), sp=1, k=6)+
+gam_lb<-gam(SumOfADULTS~s(yearly.dd.accum, by=as.factor(SPID), sp=1)+
               s(rain.days, by=as.factor(SPID), sp=1, k=3)+
-              SPID*HABITAT+
-              offset(log(TRAPS)), data=lb_all)
+              HABITAT*SPID+
+              offset(log(TRAPS)), data=lb_all, family="poisson")
 summary(gam_lb)
+
+#check concurvity
+concurvity(gam_lb)
+#looks fine, sweet!
 
 #let's visualize this!
 visreg(gam_lb, "yearly.dd.accum", "SPID", partial=FALSE, rug=FALSE, 
-       overlay=TRUE)
+       overlay=TRUE, scale="response")
 
 visreg(gam_lb, "rain.days", "SPID", partial=FALSE, rug=FALSE, 
-       overlay=TRUE)
+       overlay=TRUE, scale="response")
 
 visreg(gam_lb, "HABITAT","SPID", partial=FALSE, rug=FALSE, 
-       overlay=TRUE)
+       overlay=TRUE, scale="response")
 
-#we'll want to extract the data assocated with activity peaks
+#we'll want to extract the data associated with activity peaks
 
 #ok, I think we found the method we should use! here's the tutorial:
 # https://fromthebottomoftheheap.net/2014/05/15/identifying-periods-of-change-with-gams/
@@ -731,67 +736,139 @@ dd.HAXY.der$slope<-(dd.HAXY.der$predict.dd.HAXY.1-dd.HAXY.der$predict.dd.HAXY)/1
 
 gam_lb_yeartrend<-gam(SumOfADULTS~s(yearly.dd.accum, by=as.factor(SPID), sp=1, k=6)+
               s(rain.days, by=as.factor(SPID), sp=1, k=3)+
-              SPID*HABITAT+
-                s(year, by=as.factor(SPID), sp=1, k=6)+
-              offset(log(TRAPS)), data=lb_all)
+              HABITAT*SPID+
+                s(year, by=as.factor(SPID), sp=1)+
+              offset(log(TRAPS)), data=lb_all, family="poisson")
 summary(gam_lb_yeartrend)
 
+#check concurvity
+concurvity(gam_lb_yeartrend)
+#looks fine, sweet!
 
 visreg(gam_lb_yeartrend, "year", "SPID", partial=FALSE, rug=FALSE, 
-       overlay=TRUE)
+       overlay=TRUE, scale="response")
 
 
 #now, what accounts for the year to-year variation in absolute numbers of both species? 
 #let's do another gam, but with the yearly aggregated data and the summary weather metrics
 lb_yearly<-rename(lb_yearly, year=Year)
-lb_yearly_weather<-merge(lb_yearly, weather_yearly, all.x=T)
+#also because we're looking for drivers, let's re-arrange the data so one beetle can
+#be considered as a driver for the other
+lb_yearly_1<-dcast(lb_yearly, year+REPLICATE+TREAT+HABITAT~SPID,
+                                   value.var ="SumOfADULTS",  sum)
 
-#another gam using this data aggregated by year but not by rep
+lb_yearly_2<-merge(lb_yearly_1,unique(lb_yearly[,c(1:4,7)]), all.x=T)
+
+lb_yearly_weather<-merge(lb_yearly_2, weather_yearly, all.x=T)
 
 
-gam_lb_yearly<-gam(SumOfADULTS~s(dd20, by=as.factor(SPID), sp=1, k=4)+
-                     s(dd25.dif, by=as.factor(SPID), sp=1, k=4)+
-                     s(dd30.dif, by=as.factor(SPID), sp=1, k=4)+
-                     s(dd35.dif, by=as.factor(SPID), sp=1, k=4)+
-                     s(precip20, by=as.factor(SPID), sp=1, k=4)+
-                     s(precip25.dif, by=as.factor(SPID), sp=1, k=4)+
-                     s(precip30.dif, by=as.factor(SPID), sp=1, k=4)+
-                     s(precip35.dif, by=as.factor(SPID), sp=1, k=4)+
+
+#another gam using this data aggregated by year but not by rep, and because the
+#species seem to be responding to different factors, let's do one at a time
+
+
+
+gam_haxy_yearly<-gam(HAXY~s(C7, sp=1, k=4)+
+                     #s(dd20, sp=1, k=4)+
+                     s(dd25.dif, sp=1, k=4)+
+                     s(dd30.dif, sp=1, k=4)+
+                     #s(dd35.dif, sp=1, k=4)+
+                     s(precip20, sp=1, k=4)+
+                     #s(precip25.dif, sp=1, k=4)+
+                     #s(precip30.dif, sp=1, k=4)+
+                     s(precip35.dif, sp=1, k=4)+
                      HABITAT+
-                        offset(log(TRAPS)), data=lb_yearly_weather)
-summary(gam_lb_yearly)
+                     offset(log(TRAPS)), data=lb_yearly_weather, family="quasipoisson")
+summary(gam_haxy_yearly)
 
-visreg(gam_lb_yearly, "dd20", "SPID", partial=FALSE, rug=FALSE, 
+#because the model has a lot of variables that are probably a bit autocorrelated,
+#check concurvity to see if it needs simplification- aim to get observed >0.5 for all values
+
+concurvity(gam_haxy_yearly)
+#eliminate variables with least explanatory power (Lower F) from set with high concurvity
+# start with precip25.dif,then dd20, then dd35.dif, then precip30.dif
+
+
+visreg(gam_haxy_yearly, "C7", partial=FALSE, rug=FALSE, 
+       overlay=TRUE, scale="response")
+
+# visreg(gam_haxy_yearly, "dd20", partial=FALSE, rug=FALSE, 
+#        overlay=TRUE, scale="response")
+
+visreg(gam_haxy_yearly, "dd25.dif", partial=FALSE, rug=FALSE, 
+       overlay=TRUE, scale="response")
+
+visreg(gam_haxy_yearly, "dd30.dif", partial=FALSE, rug=FALSE,
+       overlay=TRUE, scale="response")
+
+# visreg(gam_haxy_yearly, "dd35.dif", partial=FALSE, rug=FALSE, 
+#        overlay=TRUE, scale="response")
+
+visreg(gam_haxy_yearly, "precip20", partial=FALSE, rug=FALSE, 
+       overlay=TRUE, scale="response")
+
+# visreg(gam_haxy_yearly, "precip25.dif", partial=FALSE, rug=FALSE, 
+#        overlay=TRUE, scale="response")
+
+# visreg(gam_haxy_yearly, "precip30.dif", partial=FALSE, rug=FALSE, 
+#        overlay=TRUE)
+
+visreg(gam_haxy_yearly, "precip35.dif", partial=FALSE, rug=FALSE, 
        overlay=TRUE)
 
-visreg(gam_lb_yearly, "dd25.dif", "SPID", partial=FALSE, rug=FALSE, 
-       overlay=TRUE)
-
-visreg(gam_lb_yearly, "dd30.dif", "SPID", partial=FALSE, rug=FALSE, 
-       overlay=TRUE)
-
-visreg(gam_lb_yearly, "dd35.dif", "SPID", partial=FALSE, rug=FALSE, 
-       overlay=TRUE)
-
-visreg(gam_lb_yearly, "precip20", "SPID", partial=FALSE, rug=FALSE, 
-       overlay=TRUE)
-
-visreg(gam_lb_yearly, "precip25.dif", "SPID", partial=FALSE, rug=FALSE, 
-       overlay=TRUE)
-
-visreg(gam_lb_yearly, "precip30.dif", "SPID", partial=FALSE, rug=FALSE, 
-       overlay=TRUE)
-
-visreg(gam_lb_yearly, "precip35.dif", "SPID", partial=FALSE, rug=FALSE, 
-       overlay=TRUE)
 
 
+##### now C7
+
+gam_c7_yearly<-gam(C7~s(HAXY, sp=1, k=4)+
+                       s(dd20, sp=1, k=4)+
+                       #s(dd25.dif, sp=1, k=4)+
+                       #s(dd30.dif, sp=1, k=4)+
+                       s(dd35.dif, sp=1, k=4)+
+                       #s(precip20, sp=1, k=4)+
+                       s(precip25.dif, sp=1, k=4)+
+                       #s(precip30.dif, sp=1, k=4)+
+                       #s(precip35.dif, sp=1, k=4)+
+                       HABITAT+
+                       offset(log(TRAPS)), data=lb_yearly_weather, family="quasipoisson")
+summary(gam_c7_yearly)
+
+#because the model has a lot of variables that are probably a bit autocorrelated,
+#check concurvity to see if it needs simplification- aim to get observed >0.5 for all values
+
+concurvity(gam_c7_yearly)
+#eliminate variables with least explanatory power (Lower F) from set with high concurvity
+# start with dd25.dif, dd30.dif, then precip20, precip30, precip35
 
 
-#habitat use when controlling for other patterns
-  #gam output into a boxplot figure
+visreg(gam_c7_yearly, "HAXY", partial=FALSE, rug=FALSE, 
+       overlay=TRUE, scale="response")
 
-#spatio-temporal differences
-  #multivariate analysis
+visreg(gam_c7_yearly, "dd20", partial=FALSE, rug=FALSE,
+       overlay=TRUE, scale="response")
+
+# visreg(gam_c7_yearly, "dd25.dif", partial=FALSE, rug=FALSE, 
+#        overlay=TRUE, scale="response")
+# 
+# visreg(gam_c7_yearly, "dd30.dif", partial=FALSE, rug=FALSE,
+#        overlay=TRUE, scale="response")
+
+visreg(gam_c7_yearly, "dd35.dif", partial=FALSE, rug=FALSE,
+       overlay=TRUE, scale="response")
+
+# visreg(gam_c7_yearly, "precip20", partial=FALSE, rug=FALSE, 
+#        overlay=TRUE, scale="response")
+
+visreg(gam_c7_yearly, "precip25.dif", partial=FALSE, rug=FALSE,
+       overlay=TRUE, scale="response")
+
+# visreg(gam_c7_yearly, "precip30.dif", partial=FALSE, rug=FALSE,
+#        overlay=TRUE)
+
+# visreg(gam_c7_yearly, "precip35.dif", partial=FALSE, rug=FALSE, 
+#        overlay=TRUE)
+
+
+
 
 
