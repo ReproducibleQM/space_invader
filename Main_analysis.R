@@ -632,9 +632,11 @@ dev.off()
 library(mgcv)
 library(visreg)
 
-gam_lb<-gam(SumOfADULTS~s(year, by=c(as.factor(SPID)), sp=0.5)+
-                          s(yearly.dd.accum, by=as.factor(SPID), sp=0.5)+
-              s(rain.days, by=as.factor(SPID), sp=0.5, k=3)+HABITAT+
+#start withe the drivers of within-year variation
+
+gam_lb<-gam(SumOfADULTS~s(yearly.dd.accum, by=as.factor(SPID), sp=1, k=6)+
+              s(rain.days, by=as.factor(SPID), sp=1, k=3)+
+              SPID*HABITAT+
               offset(log(TRAPS)), data=lb_all)
 summary(gam_lb)
 
@@ -645,18 +647,19 @@ visreg(gam_lb, "yearly.dd.accum", "SPID", partial=FALSE, rug=FALSE,
 visreg(gam_lb, "rain.days", "SPID", partial=FALSE, rug=FALSE, 
        overlay=TRUE)
 
-visreg(gam_lb, "year", "SPID", partial=FALSE, rug=FALSE, 
+visreg(gam_lb, "HABITAT","SPID", partial=FALSE, rug=FALSE, 
        overlay=TRUE)
 
+#we'll want to extract the data assocated with activity peaks
 
 #ok, I think we found the method we should use! here's the tutorial:
 # https://fromthebottomoftheheap.net/2014/05/15/identifying-periods-of-change-with-gams/
 
 #first we create a new dataframe that we can use our model to predict the values for
 
-#create data for harmonia, holding everything constant but degree days
+#create data for C7, holding everything constant but degree days
 newData.C7 <- with(lb_all,
-                  data.frame(yearly.dd.accum = seq(0, 1500, length = 1500),
+                  data.frame(yearly.dd.accum = seq(0, 1500, length = 300),
                              TRAPS=5, 
                              year=mean(year), 
                              rain.days=median(rain.days), 
@@ -665,7 +668,7 @@ newData.C7 <- with(lb_all,
 
 #make the same frame but for 1 more degday
 newData.C7.1<- with(lb_all,
-                     data.frame(yearly.dd.accum = seq(1, 1501, length = 1500),
+                     data.frame(yearly.dd.accum = seq(1, 1501, length = 300),
                                 TRAPS=5, 
                                 year=mean(year), 
                                 rain.days=median(rain.days), 
@@ -679,6 +682,34 @@ predict.dd.C7.1<-predict(gam_lb, newData.C7.1, type="link")
 dd.C7.der<-as.data.frame(cbind(newData.C7$yearly.dd.accum, predict.dd.C7, predict.dd.C7.1))
 dd.C7.der$slope<-(dd.C7.der$predict.dd.C7.1-dd.C7.der$predict.dd.C7)/1
 
+#then let's do the same thing with harmonia
+
+newData.HAXY <- with(lb_all,
+                   data.frame(yearly.dd.accum = seq(0, 1500, length = 300),
+                              TRAPS=5, 
+                              year=mean(year), 
+                              rain.days=median(rain.days), 
+                              SPID="HAXY", 
+                              HABITAT="alfalfa"))
+
+#make the same frame but for 1 more degday
+newData.HAXY.1<- with(lb_all,
+                    data.frame(yearly.dd.accum = seq(1, 1501, length = 300),
+                               TRAPS=5, 
+                               year=mean(year), 
+                               rain.days=median(rain.days), 
+                               SPID="HAXY", 
+                               HABITAT="alfalfa"))
+
+#make predictions
+predict.dd.HAXY<-predict(gam_lb, newData.HAXY, type="link")
+predict.dd.HAXY.1<-predict(gam_lb, newData.HAXY.1, type="link")
+
+dd.HAXY.der<-as.data.frame(cbind(newData.HAXY$yearly.dd.accum, predict.dd.HAXY, predict.dd.HAXY.1))
+dd.HAXY.der$slope<-(dd.HAXY.der$predict.dd.HAXY.1-dd.HAXY.der$predict.dd.HAXY)/1
+
+
+
 
 #Start of population growth dd.accum
 #Peak population growth dd.accum
@@ -687,11 +718,70 @@ dd.C7.der$slope<-(dd.C7.der$predict.dd.C7.1-dd.C7.der$predict.dd.C7)/1
 #look at the shape of the model for other environmental variables
 #box plot of residuals by species and habitat
 
-#Patterns over the years
-  #this is a timeseries figure
 
-#within year phenology
-  #gam models and outputs
+#now that we have a reasonable model for within-year variation,
+#let's see how much of the year-to-year variation is explained by within season trends
+
+#use the same model a above but now let's explicitly look for year-to-year variability
+
+gam_lb_yeartrend<-gam(SumOfADULTS~s(yearly.dd.accum, by=as.factor(SPID), sp=1, k=6)+
+              s(rain.days, by=as.factor(SPID), sp=1, k=3)+
+              SPID*HABITAT+
+                s(year, by=as.factor(SPID), sp=1, k=6)+
+              offset(log(TRAPS)), data=lb_all)
+summary(gam_lb_yeartrend)
+
+
+visreg(gam_lb_yeartrend, "year", "SPID", partial=FALSE, rug=FALSE, 
+       overlay=TRUE)
+
+
+#now, what accounts for the year to-year variation in absolute numbers of both species? 
+#let's do another gam, but with the yearly aggregated data and the summary weather metrics
+lb_yearly<-rename(lb_yearly, year=Year)
+lb_yearly_weather<-merge(lb_yearly, weather_yearly, all.x=T)
+
+#another gam using this data aggregated by year but not by rep
+
+
+gam_lb_yearly<-gam(SumOfADULTS~s(dd20, by=as.factor(SPID), sp=1, k=4)+
+                     s(dd25.dif, by=as.factor(SPID), sp=1, k=4)+
+                     s(dd30.dif, by=as.factor(SPID), sp=1, k=4)+
+                     s(dd35.dif, by=as.factor(SPID), sp=1, k=4)+
+                     s(precip20, by=as.factor(SPID), sp=1, k=4)+
+                     s(precip25.dif, by=as.factor(SPID), sp=1, k=4)+
+                     s(precip30.dif, by=as.factor(SPID), sp=1, k=4)+
+                     s(precip35.dif, by=as.factor(SPID), sp=1, k=4)+
+                     HABITAT+
+                        offset(log(TRAPS)), data=lb_yearly_weather)
+summary(gam_lb_yearly)
+
+visreg(gam_lb_yearly, "dd20", "SPID", partial=FALSE, rug=FALSE, 
+       overlay=TRUE)
+
+visreg(gam_lb_yearly, "dd25.dif", "SPID", partial=FALSE, rug=FALSE, 
+       overlay=TRUE)
+
+visreg(gam_lb_yearly, "dd30.dif", "SPID", partial=FALSE, rug=FALSE, 
+       overlay=TRUE)
+
+visreg(gam_lb_yearly, "dd35.dif", "SPID", partial=FALSE, rug=FALSE, 
+       overlay=TRUE)
+
+visreg(gam_lb_yearly, "precip20", "SPID", partial=FALSE, rug=FALSE, 
+       overlay=TRUE)
+
+visreg(gam_lb_yearly, "precip25.dif", "SPID", partial=FALSE, rug=FALSE, 
+       overlay=TRUE)
+
+visreg(gam_lb_yearly, "precip30.dif", "SPID", partial=FALSE, rug=FALSE, 
+       overlay=TRUE)
+
+visreg(gam_lb_yearly, "precip35.dif", "SPID", partial=FALSE, rug=FALSE, 
+       overlay=TRUE)
+
+
+
 
 #habitat use when controlling for other patterns
   #gam output into a boxplot figure
