@@ -72,6 +72,11 @@ lb_boxplot
 lb_yearly_captures<-aggregate(data=lb_weekly1994_culled, SumOfADULTS~ Year+TREAT+HABITAT+REPLICATE+SPID, FUN=sum)
 lb_yearly_N<-aggregate(data=lb_weekly1994_culled, TRAPS~ Year+TREAT+HABITAT+REPLICATE+SPID, FUN=sum)
 
+
+#also, just so we know what we're comparing here, how many of each species did we catch?
+lb_tots<-aggregate(data=lb_weekly1994_culled, SumOfADULTS~ SPID, FUN=sum)
+lb_tots
+
 #merge yearly captures with sampling intensity data
 lb_yearly<-merge(lb_yearly_captures, lb_yearly_N)
 #compute a new variable- average number of beetles per trap
