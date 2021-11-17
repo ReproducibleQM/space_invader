@@ -869,6 +869,3 @@ visreg(gam_c7_yearly, "precip25.dif", partial=FALSE, rug=FALSE,
 #        overlay=TRUE)
 
 
-
-
-
