@@ -789,8 +789,13 @@ concurvity(gam_haxy_yearly)
 # start with precip25.dif,then dd20, then dd35.dif, then precip30.dif
 
 
-visreg(gam_haxy_yearly, "C7", partial=FALSE, rug=FALSE, 
-       overlay=TRUE, scale="response")
+haxy.c7.y<-visreg(gam_haxy_yearly, "C7", partial=FALSE, rug=FALSE, 
+       overlay=TRUE, scale="response", gg=T, ylab="Residual captures", 
+       xlab="Competitor captures", line=list(col="darkorange", lty=2),
+       fill=list(fill="tan1", alpha=0.5))+
+  theme_classic()
+
+haxy.c7.y
 
 # visreg(gam_haxy_yearly, "dd20", partial=FALSE, rug=FALSE, 
 #        overlay=TRUE, scale="response")
@@ -841,8 +846,15 @@ concurvity(gam_c7_yearly)
 # start with dd25.dif, dd30.dif, then precip20, precip30, precip35
 
 
-visreg(gam_c7_yearly, "HAXY", partial=FALSE, rug=FALSE, 
-       overlay=TRUE, scale="response")
+C7.haxy.y<-visreg(gam_c7_yearly, "HAXY", partial=FALSE, rug=FALSE, 
+                  overlay=TRUE, scale="response", gg=T, ylab="Residual captures",
+                  xlab="Competitor captures",line=list(col="darkred", lty=4),
+                  fill=list(fill="brown1", alpha=0.4))+
+  theme_classic()
+
+C7.haxy.y
+
+
 
 visreg(gam_c7_yearly, "dd20", partial=FALSE, rug=FALSE,
        overlay=TRUE, scale="response")
