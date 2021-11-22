@@ -97,7 +97,7 @@ lb_yearly_boxplot<-ggplot(lb_yearly, aes(x=HABITAT, y=pertrap, fill=SPID))+
   geom_boxplot()+
   scale_fill_manual(values=c("darkred", "darkorange"), labels=c("C7", "HA"))+
   labs(x="Plant community", y="Captures per trap", fill="Species")+
-  theme_classic()+ theme(legend.position = "none", axis.text=element_text(angle=90))
+  theme_classic()+ theme(legend.position = "none", axis.text.x=element_text(angle=90))
 lb_yearly_boxplot
 
 #let's look at the populations over time instead
@@ -109,7 +109,6 @@ lb_yearly_plot<-ggplot(lb_yearly, aes(x=Year, y=SumOfADULTS, fill=SPID, shape=SP
   scale_shape_manual(values=c(4, 1), labels=c("C7", "HA"), name="Species")+
   scale_linetype_manual(values=c(2, 4), labels=c("C7", "HA"), name="Species")+
   labs(x="Year", y="Captures per trap")+
-  
   theme_classic()
 lb_yearly_plot
 
@@ -634,7 +633,7 @@ points(ord.week, display="sites", select=which(landscape.week.1$SPID=="HAXY"), p
 points(ord.week, display="sites", select=which(landscape.week.1$SPID=="C7"), pch=15, cex=0.5, col="red")
 ordilabel(ord.week, display="species", cex=0.75, col="black")
 
-#bring the relevant environmental data back into our enviromental frame
+#bring the relevant environmental data back into our environmental frame
 weekly.context<-merge(landscape.week.1, weather_weekly, all.x = T)
 
 #is the spatiotemporal distribution of harmonia different from that of C7?
@@ -699,28 +698,83 @@ dev.off()
 #two different scales- within year dynamics and between year dynamics
 library(mgcv)
 library(visreg)
+library(ggpubr)
 
 #start withe the drivers of within-year variation
 
 gam_lb<-gam(SumOfADULTS~s(yearly.dd.accum, by=as.factor(SPID), sp=1)+
               s(rain.days, by=as.factor(SPID), sp=1, k=3)+
               HABITAT*SPID+
-              offset(log(TRAPS)), data=lb_all, family="poisson")
+              s(year, by=as.factor(SPID), sp=1)+
+              offset(log(TRAPS)), method="REML", data=lb_all, family="poisson")
 summary(gam_lb)
+anova.gam(gam_lb)
 
 #check concurvity
 concurvity(gam_lb)
 #looks fine, sweet!
 
 #let's visualize this!
-visreg(gam_lb, "yearly.dd.accum", "SPID", partial=FALSE, rug=FALSE, 
-       overlay=TRUE, scale="response")
+withinyear.dd<-visreg(gam_lb, "yearly.dd.accum", by="SPID", partial=FALSE, rug=FALSE, 
+                      overlay=TRUE, scale="response", gg=TRUE,
+                      line=list(lty=1))+
+  scale_fill_manual(values=alpha(c("darkred", "darkorange"), 0.4), labels=c("C7", "HA"), name="Species")+
+  scale_color_manual(values=c("darkred", "darkorange"), labels=c("C7", "HA"), name="Species")+
+  labs(x="Degree day accumulation", y="")+
+  theme_classic()+ theme(legend.position = "none")
 
-visreg(gam_lb, "rain.days", "SPID", partial=FALSE, rug=FALSE, 
-       overlay=TRUE, scale="response")
+withinyear.dd
 
-visreg(gam_lb, "HABITAT","SPID", partial=FALSE, rug=FALSE, 
-       overlay=TRUE, scale="response")
+withinyear.rain<-visreg(gam_lb, "rain.days", "SPID", partial=FALSE, rug=FALSE, 
+       overlay=TRUE, scale="response", gg=TRUE, line=list(lty=1))+
+  scale_fill_manual(values=alpha(c("darkred", "darkorange"), 0.4), labels=c("C7", "HA"), name="Species")+
+  scale_color_manual(values=c("darkred", "darkorange"), labels=c("C7", "HA"), name="Species")+
+  labs(x="Rainy days per week", y="")+
+  theme_classic()+ theme(legend.position = "none")
+
+withinyear.rain
+
+
+withinyear.habitat<-visreg(gam_lb, "HABITAT","SPID", partial=FALSE, rug=FALSE, 
+       overlay=TRUE, scale="response", gg=TRUE,
+       line=list(lty=1))+
+  scale_fill_manual(values=alpha(c("darkred", "darkorange"), 0.4), labels=c("C7", "HA"), name="Species")+
+  scale_color_manual(values=c("darkred", "darkorange"), labels=c("C7", "HA"), name="Species")+
+  labs(x="Habitat", y="")+
+  theme_classic()+ theme(legend.position = "none", axis.text.x=element_text(angle=90, vjust=0.5, hjust=1))
+
+withinyear.habitat
+
+withinyear.yearly<-visreg(gam_lb, "year", "SPID", partial=FALSE, rug=FALSE, 
+       overlay=TRUE, scale="response", gg=TRUE,
+       line=list(lty=1))+
+  scale_fill_manual(values=alpha(c("darkred", "darkorange"), 0.4), labels=c("C7", "HA"), name="Species")+
+  scale_color_manual(values=c("darkred", "darkorange"), labels=c("C7", "HA"), name="Species")+
+  labs(x="Year\n\n\n", y="")+
+  theme_classic()
+
+withinyear.yearly
+
+#plot the withinyear model all together:
+
+withinyear.modelplot<-plot_grid(withinyear.dd, withinyear.rain, withinyear.habitat, withinyear.yearly, 
+                              ncol=2, rel_widths=c(1, 1), rel_heights = c(0.85, 1), labels=c('A', 'B', 'C', 'D'))
+withinyear.modelplot
+
+#create overall y axis label
+partresid<-text_grob(paste("     Partial residual captures"), color="black", size=12, rot=90)
+
+
+#now replot with grob label
+withinyear.plot<-plot_grid(partresid, withinyear.modelplot, ncol=2, rel_widths = c(1,11))
+
+withinyear.plot
+
+pdf("plots/figurewithinyeargam.pdf", height=5, width=8)
+withinyear.plot
+dev.off()
+
+
 
 #we'll want to extract the data associated with activity peaks
 
@@ -791,24 +845,9 @@ dd.HAXY.der$slope<-(dd.HAXY.der$predict.dd.HAXY.1-dd.HAXY.der$predict.dd.HAXY)/1
 #box plot of residuals by species and habitat
 
 
-#now that we have a reasonable model for within-year variation,
-#let's see how much of the year-to-year variation is explained by within season trends
 
-#use the same model a above but now let's explicitly look for year-to-year variability
 
-gam_lb_yeartrend<-gam(SumOfADULTS~s(yearly.dd.accum, by=as.factor(SPID), sp=1, k=6)+
-              s(rain.days, by=as.factor(SPID), sp=1, k=3)+
-              HABITAT*SPID+
-                s(year, by=as.factor(SPID), sp=1)+
-              offset(log(TRAPS)), data=lb_all, family="poisson")
-summary(gam_lb_yeartrend)
 
-#check concurvity
-concurvity(gam_lb_yeartrend)
-#looks fine, sweet!
-
-visreg(gam_lb_yeartrend, "year", "SPID", partial=FALSE, rug=FALSE, 
-       overlay=TRUE, scale="response")
 
 
 #now, what accounts for the year to-year variation in absolute numbers of both species? 
