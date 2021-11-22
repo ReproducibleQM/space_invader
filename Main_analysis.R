@@ -95,14 +95,35 @@ lb_yearly$pertrap<-lb_yearly$SumOfADULTS/lb_yearly$TRAPS
 #let's repeat the boxplot but with yearly data
 lb_yearly_boxplot<-ggplot(lb_yearly, aes(x=HABITAT, y=pertrap, fill=SPID))+
   geom_boxplot()+
-  theme_classic()
+  scale_fill_manual(values=c("darkred", "darkorange"), labels=c("C7", "HA"))+
+  labs(x="Plant community", y="Captures per trap", fill="Species")+
+  theme_classic()+ theme(legend.position = "none", axis.text=element_text(angle=90))
 lb_yearly_boxplot
 
 #let's look at the populations over time instead
-lb_yearly_plot<-ggplot(lb_yearly, aes(x=Year, y=SumOfADULTS, fill=SPID, color=SPID))+
-  geom_point(pch=21)+
-  geom_smooth()
+lb_yearly_plot<-ggplot(lb_yearly, aes(x=Year, y=SumOfADULTS, fill=SPID, shape=SPID, linetype=SPID, color=SPID))+
+  geom_point(size=2)+
+  geom_smooth()+
+  scale_fill_manual(values=c("darkred", "darkorange"), labels=c("C7", "HA"), name="Species")+
+  scale_color_manual(values=c("darkred", "darkorange"), labels=c("C7", "HA"), name="Species")+
+  scale_shape_manual(values=c(4, 1), labels=c("C7", "HA"), name="Species")+
+  scale_linetype_manual(values=c(2, 4), labels=c("C7", "HA"), name="Species")+
+  labs(x="Year", y="Captures per trap")+
+  
+  theme_classic()
 lb_yearly_plot
+
+library(cowplot)
+library(grid)
+
+rawtrends<-plot_grid(lb_yearly_boxplot, lb_yearly_plot, ncol=1, rel_widths=c(1), labels=c('A', 'B'))
+
+rawtrends
+
+pdf("plots/figurerawtrends.pdf", height=8, width=6)
+rawtrends
+dev.off()
+
 
 ###################################
 #Begin weather data processing
@@ -608,7 +629,7 @@ plot(fit.year)
 ord.week<-metaMDS(com.matrix.week, autotransform=TRUE)
 ord.week
 
-p<-plot(ord.week, disp='sites', type='n')
+plot(ord.week, disp='sites', type='n')
 points(ord.week, display="sites", select=which(landscape.week.1$SPID=="HAXY"), pch=19, cex=0.5,col="orange")
 points(ord.week, display="sites", select=which(landscape.week.1$SPID=="C7"), pch=15, cex=0.5, col="red")
 ordilabel(ord.week, display="species", cex=0.75, col="black")
@@ -646,9 +667,8 @@ plot(fit.week)
 # remotes::install_github("gavinsimpson/ggvegan")
 
 
-library(cowplot)
-library(grid)
-library(ggvegan)
+
+
 #built a two-panel PDF
 #guh, looks like with the base vegan plots it's still easiest to do the base R
 
@@ -657,15 +677,15 @@ pdf("plots/figureNMSDs.pdf", height=10, width=8)
 par(mfrow=c(2,1), mar=c(4.1, 4.8, 1.5, 8.1),xpd=TRUE) 
 
 plot(ord.year, disp='sites', type='n')
-points(ord.year, display="sites", select=which(landscape.year$SPID=="HAXY"), pch=19, cex=0.5, col="orange")
-points(ord.year, display="sites", select=which(landscape.year$SPID=="C7"), pch=15, cex=0.5, col="red")
+points(ord.year, display="sites", select=which(landscape.year$SPID=="HAXY"), pch=4, cex=0.5, col="darkorange")
+points(ord.year, display="sites", select=which(landscape.year$SPID=="C7"), pch=1, cex=0.5, col="darkred")
 ordilabel(ord.year, display="species", cex=0.75, col="black")
 plot(fit.year)
 text(-1.45, 0.95, "A", cex=2)
 
 plot(ord.week, disp='sites', type='n')
-points(ord.week, display="sites", select=which(landscape.week.1$SPID=="HAXY"), pch=19, cex=0.5,col="orange")
-points(ord.week, display="sites", select=which(landscape.week.1$SPID=="C7"), pch=15, cex=0.5, col="red")
+points(ord.week, display="sites", select=which(landscape.week.1$SPID=="HAXY"), pch=4, cex=0.5,col="darkorange")
+points(ord.week, display="sites", select=which(landscape.week.1$SPID=="C7"), pch=1, cex=0.5, col="darkred")
 ordilabel(ord.week, display="species", cex=0.75, col="black")
 plot(fit.week)
 text(-1.9,1.46, "B", cex=2)
