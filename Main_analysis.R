@@ -581,14 +581,14 @@ fit.year
 
 plot(fit.year)
 
-#save to pdf
-pdf("plots/NMDS_yearly.pdf", height=6, width=6)
-plot(ord.year, disp='sites', type='n')
-points(ord.year, display="sites", select=which(landscape.year$SPID=="HAXY"), pch=19, cex=0.5,col="orange")
-points(ord.year, display="sites", select=which(landscape.year$SPID=="C7"), pch=15, cex=0.5, col="red")
-plot(fit.year)
-ordilabel(ord.year, display="species", cex=0.75, col="black")
-dev.off()
+# #save to pdf
+# pdf("plots/NMDS_yearly.pdf", height=6, width=6)
+# plot(ord.year, disp='sites', type='n')
+# points(ord.year, display="sites", select=which(landscape.year$SPID=="HAXY"), pch=19, cex=0.5,col="orange")
+# points(ord.year, display="sites", select=which(landscape.year$SPID=="C7"), pch=15, cex=0.5, col="red")
+# plot(fit.year)
+# ordilabel(ord.year, display="species", cex=0.75, col="black")
+# dev.off()
 
 
 
@@ -597,7 +597,7 @@ dev.off()
 ord.week<-metaMDS(com.matrix.week, autotransform=TRUE)
 ord.week
 
-plot(ord.week, disp='sites', type='n')
+p<-plot(ord.week, disp='sites', type='n')
 points(ord.week, display="sites", select=which(landscape.week.1$SPID=="HAXY"), pch=19, cex=0.5,col="orange")
 points(ord.week, display="sites", select=which(landscape.week.1$SPID=="C7"), pch=15, cex=0.5, col="red")
 ordilabel(ord.week, display="species", cex=0.75, col="black")
@@ -621,14 +621,45 @@ fit.week
 
 plot(fit.week)
 
-#save to pdf
-pdf("plots/NMDS_weekly.pdf", height=6, width=6)
+# #save to pdf
+# pdf("plots/NMDS_weekly.pdf", height=6, width=6)
+# plot(ord.week, disp='sites', type='n')
+# points(ord.week, display="sites", select=which(landscape.week.1$SPID=="HAXY"), pch=19, cex=0.5,col="orange")
+# points(ord.week, display="sites", select=which(landscape.week.1$SPID=="C7"), pch=15, cex=0.5, col="red")
+# ordilabel(ord.week, display="species", cex=0.75, col="black")
+# plot(fit.week)
+# dev.off()
+
+# #install ggvegan
+# install.packages("remotes")
+# remotes::install_github("gavinsimpson/ggvegan")
+
+
+library(cowplot)
+library(grid)
+library(ggvegan)
+#built a two-panel PDF
+#guh, looks like with the base vegan plots it's still easiest to do the base R
+
+
+pdf("plots/figureNMSDs.pdf", height=10, width=8)
+par(mfrow=c(2,1), mar=c(4.1, 4.8, 1.5, 8.1),xpd=TRUE) 
+
+plot(ord.year, disp='sites', type='n')
+points(ord.year, display="sites", select=which(landscape.year$SPID=="HAXY"), pch=19, cex=0.5, col="orange")
+points(ord.year, display="sites", select=which(landscape.year$SPID=="C7"), pch=15, cex=0.5, col="red")
+ordilabel(ord.year, display="species", cex=0.75, col="black")
+plot(fit.year)
+text(-1.45, 0.95, "A", cex=2)
+
 plot(ord.week, disp='sites', type='n')
 points(ord.week, display="sites", select=which(landscape.week.1$SPID=="HAXY"), pch=19, cex=0.5,col="orange")
 points(ord.week, display="sites", select=which(landscape.week.1$SPID=="C7"), pch=15, cex=0.5, col="red")
 ordilabel(ord.week, display="species", cex=0.75, col="black")
 plot(fit.week)
+text(-1.9,1.46, "B", cex=2)
 dev.off()
+
 
 
 
