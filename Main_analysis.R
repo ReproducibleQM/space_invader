@@ -33,6 +33,14 @@ LB$week<-isoweek(LB$newdate)
 
 summary(LB)#bingo! looks like it worked!
 
+
+#let's reorder our habitats right here at the top
+LB$HABITAT<-factor(LB$HABITAT, 
+                   levels=c("maize", "soybeans","wheat", "alfalfa", "poplar", "ES", "Coniferous", "Deciduous", "Succesional"))
+#and relabel themso they're in the same case
+levels(LB$HABITAT)<-c("maize", "soybeans","wheat", "alfalfa", "poplar", "ES", "coniferous", "deciduous", "succesional")
+
+
 #let's take a look at ladybeetles by treatment
 #we need to aggregate the data by rep first, because subsamples are zero-biased
 library(dplyr)
@@ -82,9 +90,12 @@ lb_yearly<-merge(lb_yearly_captures, lb_yearly_N)
 #compute a new variable- average number of beetles per trap
 lb_yearly$pertrap<-lb_yearly$SumOfADULTS/lb_yearly$TRAPS
 
+
+
 #let's repeat the boxplot but with yearly data
-lb_yearly_boxplot<-ggplot(lb_yearly, aes(x=TREAT, y=pertrap, fill=SPID))+
-  geom_boxplot()
+lb_yearly_boxplot<-ggplot(lb_yearly, aes(x=HABITAT, y=pertrap, fill=SPID))+
+  geom_boxplot()+
+  theme_classic()
 lb_yearly_boxplot
 
 #let's look at the populations over time instead
