@@ -115,7 +115,7 @@ lb_yearly_plot
 library(cowplot)
 library(grid)
 
-rawtrends<-plot_grid(lb_yearly_boxplot, lb_yearly_plot, ncol=1, rel_widths=c(1), labels=c('A', 'B'))
+rawtrends<-plot_grid(lb_yearly_plot, lb_yearly_boxplot,  ncol=1, rel_widths=c(1), labels=c('A', 'B'))
 
 rawtrends
 
@@ -762,7 +762,7 @@ withinyear.modelplot<-plot_grid(withinyear.dd, withinyear.rain, withinyear.habit
 withinyear.modelplot
 
 #create overall y axis label
-partresid<-text_grob(paste("     Partial residual captures"), color="black", size=12, rot=90)
+partresid<-text_grob(paste("        Partial residual captures"), color="black", size=12, rot=90)
 
 
 #now replot with grob label
@@ -891,7 +891,7 @@ concurvity(gam_haxy_yearly)
 
 
 haxy.c7.y<-visreg(gam_haxy_yearly, "C7", partial=FALSE, rug=FALSE, 
-       overlay=TRUE, scale="response", gg=T, ylab="Residual captures", 
+       overlay=TRUE, scale="response", gg=T, ylab="", 
        xlab="Competitor captures", line=list(col="darkorange", lty=2),
        fill=list(fill="darkorange", alpha=0.4))+
   theme_classic()
@@ -902,7 +902,7 @@ haxy.c7.y
 #        overlay=TRUE, scale="response")
 
 haxy.dd25<-visreg(gam_haxy_yearly, "dd25.dif", partial=FALSE, rug=FALSE, 
-                  overlay=TRUE, scale="response", gg=T, ylab="Residual captures", 
+                  overlay=TRUE, scale="response", gg=T, ylab="", 
                   xlab="Degree day accumulation", line=list(col="darkorange", lty=2),
                   fill=list(fill="darkorange", alpha=0.4))+
   theme_classic()
@@ -910,7 +910,7 @@ haxy.dd25
 
 
 haxy.dd30<-visreg(gam_haxy_yearly, "dd30.dif", partial=FALSE, rug=FALSE,
-                  overlay=TRUE, scale="response", gg=T, ylab="Residual captures", 
+                  overlay=TRUE, scale="response", gg=T, ylab="", 
                   xlab="Degree day accumulation", line=list(col="darkorange", lty=2),
                   fill=list(fill="darkorange", alpha=0.4))+
   theme_classic()
@@ -920,7 +920,7 @@ haxy.dd30
 #        overlay=TRUE, scale="response")
 
 haxy.precip20<-visreg(gam_haxy_yearly, "precip20", partial=FALSE, rug=FALSE, 
-                      overlay=TRUE, scale="response", gg=T, ylab="Residual captures", 
+                      overlay=TRUE, scale="response", gg=T, ylab="", 
                       xlab="Accumulated precipitation", line=list(col="darkorange", lty=2),
                       fill=list(fill="darkorange", alpha=0.4))+
   theme_classic()
@@ -933,7 +933,7 @@ haxy.precip20
 #        overlay=TRUE)
 
 haxy.precip35<-visreg(gam_haxy_yearly, "precip35.dif", partial=FALSE, rug=FALSE, 
-                      overlay=TRUE, scale="response", gg=T, ylab="Residual captures", 
+                      overlay=TRUE, scale="response", gg=T, ylab="", 
                       xlab="Competitor captures", line=list(col="darkorange", lty=2),
                       fill=list(fill="darkorange", alpha=0.4))+
   theme_classic()
@@ -964,7 +964,7 @@ concurvity(gam_c7_yearly)
 
 
 C7.haxy.y<-visreg(gam_c7_yearly, "HAXY", partial=FALSE, rug=FALSE, 
-                  overlay=TRUE, scale="response", gg=T, ylab="Residual captures",
+                  overlay=TRUE, scale="response", gg=T, ylab="",
                   xlab="Competitor captures",line=list(col="darkred", lty=4),
                   fill=list(fill="darkred", alpha=0.4))+
   theme_classic()
@@ -974,7 +974,7 @@ C7.haxy.y
 
 
 C7.dd20<-visreg(gam_c7_yearly, "dd20", partial=FALSE, rug=FALSE,
-                overlay=TRUE, scale="response", gg=T, ylab="Residual captures",
+                overlay=TRUE, scale="response", gg=T, ylab="",
                 xlab="Degree day accumulation",line=list(col="darkred", lty=4),
                 fill=list(fill="darkred", alpha=0.4))+
   theme_classic()
@@ -989,7 +989,7 @@ C7.dd20
 #        overlay=TRUE, scale="response")
 
 C7.dd35<-visreg(gam_c7_yearly, "dd35.dif", partial=FALSE, rug=FALSE,
-                overlay=TRUE, scale="response", gg=T, ylab="Residual captures",
+                overlay=TRUE, scale="response", gg=T, ylab="",
                 xlab="Degree day accumulation",line=list(col="darkred", lty=4),
                 fill=list(fill="darkred", alpha=0.4))+
   theme_classic()
@@ -1002,7 +1002,7 @@ C7.dd35
 #        overlay=TRUE, scale="response")
 
 C7.precip25<-visreg(gam_c7_yearly, "precip25.dif", partial=FALSE, rug=FALSE,
-                    overlay=TRUE, scale="response", gg=T, ylab="Residual captures",
+                    overlay=TRUE, scale="response", gg=T, ylab="",
                     xlab="Accumulated precipitation",line=list(col="darkred", lty=4),
                     fill=list(fill="darkred", alpha=0.4))+
   theme_classic()
@@ -1015,4 +1015,20 @@ C7.precip25
 # visreg(gam_c7_yearly, "precip35.dif", partial=FALSE, rug=FALSE, 
 #        overlay=TRUE)
 
+blankspace<-text_grob(paste(""), color="black")
+Competitor<-text_grob(paste("Captures of\ncompetitor"), color="black", size=11)
 
+
+#create a giant flippin' plot with all the panels
+
+between_years<-plot_grid(Competitor, haxy.c7.y, C7.haxy.y,
+                         blankspace, blankspace, C7.dd20, 
+                         blankspace, haxy.dd25, blankspace, 
+                         blankspace, haxy.dd30, blankspace, 
+                         blankspace, blankspace, C7.dd35, 
+                         blankspace, haxy.precip20, blankspace, 
+                         blankspace, blankspace, C7.precip25, 
+                         blankspace, blankspace, blankspace,
+                         blankspace, haxy.precip35, blankspace, ncol=3)
+
+between_years
