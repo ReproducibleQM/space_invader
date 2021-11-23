@@ -877,22 +877,24 @@ gam_haxy_yearly<-gam(HAXY~s(C7, sp=1, k=4)+
                      s(precip20, sp=1, k=4)+
                      #s(precip25.dif, sp=1, k=4)+
                      #s(precip30.dif, sp=1, k=4)+
-                     s(precip35.dif, sp=1, k=4)+
-                     HABITAT+
-                     offset(log(TRAPS)), data=lb_yearly_weather, family="quasipoisson")
+                     s(precip35.dif, sp=1, k=4)+HABITAT+
+                     offset(log(TRAPS)), data=lb_yearly_weather, family="quasipoisson", method="REML")
 summary(gam_haxy_yearly)
+anova.gam(gam_haxy_yearly)
 
 #because the model has a lot of variables that are probably a bit autocorrelated,
-#check concurvity to see if it needs simplification- aim to get observed >0.5 for all values
+#check concurvity to see if it needs simplification- aim to get observed <0.5 for all pairwise comparisons of variables
 
-concurvity(gam_haxy_yearly)
-#eliminate variables with least explanatory power (Lower F) from set with high concurvity
-# start with precip25.dif,then dd20, then dd35.dif, then precip30.dif
+
+concurvity(gam_haxy_yearly, full=T)
+
+#eliminate variables with least explanatory power (Lower F) from set with high concurvity, from each dd and precip set
+#remove precip25,then dd35, dd.20, then p30
 
 
 haxy.c7.y<-visreg(gam_haxy_yearly, "C7", partial=FALSE, rug=FALSE, 
        overlay=TRUE, scale="response", gg=T, ylab="", 
-       xlab="Competitor captures", line=list(col="darkorange", lty=2),
+       xlab=NULL, line=list(col="darkorange", lty=2),
        fill=list(fill="darkorange", alpha=0.4))+
   theme_classic()
 
@@ -903,7 +905,7 @@ haxy.c7.y
 
 haxy.dd25<-visreg(gam_haxy_yearly, "dd25.dif", partial=FALSE, rug=FALSE, 
                   overlay=TRUE, scale="response", gg=T, ylab="", 
-                  xlab="Degree day accumulation", line=list(col="darkorange", lty=2),
+                  xlab=NULL, line=list(col="darkorange", lty=2),
                   fill=list(fill="darkorange", alpha=0.4))+
   theme_classic()
 haxy.dd25
@@ -911,7 +913,7 @@ haxy.dd25
 
 haxy.dd30<-visreg(gam_haxy_yearly, "dd30.dif", partial=FALSE, rug=FALSE,
                   overlay=TRUE, scale="response", gg=T, ylab="", 
-                  xlab="Degree day accumulation", line=list(col="darkorange", lty=2),
+                  xlab=NULL, line=list(col="darkorange", lty=2),
                   fill=list(fill="darkorange", alpha=0.4))+
   theme_classic()
 haxy.dd30
@@ -921,7 +923,7 @@ haxy.dd30
 
 haxy.precip20<-visreg(gam_haxy_yearly, "precip20", partial=FALSE, rug=FALSE, 
                       overlay=TRUE, scale="response", gg=T, ylab="", 
-                      xlab="Accumulated precipitation", line=list(col="darkorange", lty=2),
+                      xlab=NULL, line=list(col="darkorange", lty=2),
                       fill=list(fill="darkorange", alpha=0.4))+
   theme_classic()
 haxy.precip20
@@ -934,7 +936,7 @@ haxy.precip20
 
 haxy.precip35<-visreg(gam_haxy_yearly, "precip35.dif", partial=FALSE, rug=FALSE, 
                       overlay=TRUE, scale="response", gg=T, ylab="", 
-                      xlab="Competitor captures", line=list(col="darkorange", lty=2),
+                      xlab=NULL, line=list(col="darkorange", lty=2),
                       fill=list(fill="darkorange", alpha=0.4))+
   theme_classic()
 haxy.precip35
@@ -947,25 +949,28 @@ gam_c7_yearly<-gam(C7~s(HAXY, sp=1, k=4)+
                        #s(dd25.dif, sp=1, k=4)+
                        #s(dd30.dif, sp=1, k=4)+
                        s(dd35.dif, sp=1, k=4)+
-                       #s(precip20, sp=1, k=4)+
+                       s(precip20, sp=1, k=4)+
                        s(precip25.dif, sp=1, k=4)+
                        #s(precip30.dif, sp=1, k=4)+
                        #s(precip35.dif, sp=1, k=4)+
-                       HABITAT+
-                       offset(log(TRAPS)), data=lb_yearly_weather, family="quasipoisson")
+                     HABITAT+
+                       offset(log(TRAPS)), data=lb_yearly_weather, family="quasipoisson", method="REML")
 summary(gam_c7_yearly)
 
+anova.gam(gam_c7_yearly)
 #because the model has a lot of variables that are probably a bit autocorrelated,
-#check concurvity to see if it needs simplification- aim to get observed >0.5 for all values
+#check concurvity to see if it needs simplification- aim to get observed <0.5 for all values
 
-concurvity(gam_c7_yearly)
-#eliminate variables with least explanatory power (Lower F) from set with high concurvity
-# start with dd25.dif, dd30.dif, then precip20, precip30, precip35
+
+concurvity(gam_c7_yearly, full=TRUE)
+#eliminate variables with least explanatory power (Lower F) from set with high concurvity (<0.5)
+# start with dd25,dd30, p30
+
 
 
 C7.haxy.y<-visreg(gam_c7_yearly, "HAXY", partial=FALSE, rug=FALSE, 
                   overlay=TRUE, scale="response", gg=T, ylab="",
-                  xlab="Competitor captures",line=list(col="darkred", lty=4),
+                  xlab=NULL,line=list(col="darkred", lty=4),
                   fill=list(fill="darkred", alpha=0.4))+
   theme_classic()
 
@@ -975,7 +980,7 @@ C7.haxy.y
 
 C7.dd20<-visreg(gam_c7_yearly, "dd20", partial=FALSE, rug=FALSE,
                 overlay=TRUE, scale="response", gg=T, ylab="",
-                xlab="Degree day accumulation",line=list(col="darkred", lty=4),
+                xlab=NULL,line=list(col="darkred", lty=4),
                 fill=list(fill="darkred", alpha=0.4))+
   theme_classic()
 
@@ -990,7 +995,7 @@ C7.dd20
 
 C7.dd35<-visreg(gam_c7_yearly, "dd35.dif", partial=FALSE, rug=FALSE,
                 overlay=TRUE, scale="response", gg=T, ylab="",
-                xlab="Degree day accumulation",line=list(col="darkred", lty=4),
+                xlab=NULL,line=list(col="darkred", lty=4),
                 fill=list(fill="darkred", alpha=0.4))+
   theme_classic()
 
@@ -998,12 +1003,17 @@ C7.dd35
 
 
 
-# visreg(gam_c7_yearly, "precip20", partial=FALSE, rug=FALSE, 
-#        overlay=TRUE, scale="response")
+C7.precip20<-visreg(gam_c7_yearly, "precip20", partial=FALSE, rug=FALSE,
+                    overlay=TRUE, scale="response", gg=T, ylab="",
+                    xlab=NULL,line=list(col="darkred", lty=4),
+                    fill=list(fill="darkred", alpha=0.4))+
+  theme_classic()
+
+C7.precip20
 
 C7.precip25<-visreg(gam_c7_yearly, "precip25.dif", partial=FALSE, rug=FALSE,
                     overlay=TRUE, scale="response", gg=T, ylab="",
-                    xlab="Accumulated precipitation",line=list(col="darkred", lty=4),
+                    xlab=NULL,line=list(col="darkred", lty=4),
                     fill=list(fill="darkred", alpha=0.4))+
   theme_classic()
 
@@ -1016,19 +1026,27 @@ C7.precip25
 #        overlay=TRUE)
 
 blankspace<-text_grob(paste(""), color="black")
+harmonia<-text_grob(paste("Harmonia axyridis"), color="black", face="italic", size=13)
+coccinella<-text_grob(paste("Coccinella septempunctata"), color="black", face="italic", size=13)
 Competitor<-text_grob(paste("Captures of\ncompetitor"), color="black", size=11)
-
+dd20<-text_grob(paste("Degree days\n  at 20 weeks"), color="black", size=11)
+dd25<-text_grob(paste("\n  at 25 weeks"), color="black", size=11)
+dd30<-text_grob(paste("\n  at 30 weeks"), color="black", size=11)
+dd35<-text_grob(paste("\n  at 35 weeks"), color="black", size=11)
+precip20<-text_grob(paste("Precipitation\nat 20 weeks"), color="black", size=11)
 
 #create a giant flippin' plot with all the panels
 
-between_years<-plot_grid(Competitor, haxy.c7.y, C7.haxy.y,
-                         blankspace, blankspace, C7.dd20, 
-                         blankspace, haxy.dd25, blankspace, 
-                         blankspace, haxy.dd30, blankspace, 
-                         blankspace, blankspace, C7.dd35, 
-                         blankspace, haxy.precip20, blankspace, 
-                         blankspace, blankspace, C7.precip25, 
-                         blankspace, blankspace, blankspace,
-                         blankspace, haxy.precip35, blankspace, ncol=3)
+between_years<-plot_grid(blankspace, harmonia, coccinella,
+                         Competitor, haxy.c7.y, C7.haxy.y,
+                         dd20, blankspace, C7.dd20, 
+                         dd25, haxy.dd25, blankspace, 
+                         dd30, haxy.dd30, blankspace, 
+                         dd35, blankspace, C7.dd35, 
+                         precip20, haxy.precip20, C7.precip20, 
+                         dd25, blankspace, C7.precip25, 
+                         dd30, blankspace, blankspace,
+                         dd35, haxy.precip35, blankspace, 
+                         ncol=3, rel_widths=c(1,4,4), align="v", axis="l")
 
 between_years
