@@ -893,7 +893,7 @@ concurvity(gam_haxy_yearly)
 haxy.c7.y<-visreg(gam_haxy_yearly, "C7", partial=FALSE, rug=FALSE, 
        overlay=TRUE, scale="response", gg=T, ylab="Residual captures", 
        xlab="Competitor captures", line=list(col="darkorange", lty=2),
-       fill=list(fill="tan1", alpha=0.5))+
+       fill=list(fill="darkorange", alpha=0.4))+
   theme_classic()
 
 haxy.c7.y
@@ -904,7 +904,7 @@ haxy.c7.y
 haxy.dd25<-visreg(gam_haxy_yearly, "dd25.dif", partial=FALSE, rug=FALSE, 
                   overlay=TRUE, scale="response", gg=T, ylab="Residual captures", 
                   xlab="Degree day accumulation", line=list(col="darkorange", lty=2),
-                  fill=list(fill="tan1", alpha=0.5))+
+                  fill=list(fill="darkorange", alpha=0.4))+
   theme_classic()
 haxy.dd25
 
@@ -912,7 +912,7 @@ haxy.dd25
 haxy.dd30<-visreg(gam_haxy_yearly, "dd30.dif", partial=FALSE, rug=FALSE,
                   overlay=TRUE, scale="response", gg=T, ylab="Residual captures", 
                   xlab="Degree day accumulation", line=list(col="darkorange", lty=2),
-                  fill=list(fill="tan1", alpha=0.5))+
+                  fill=list(fill="darkorange", alpha=0.4))+
   theme_classic()
 haxy.dd30
 
@@ -922,7 +922,7 @@ haxy.dd30
 haxy.precip20<-visreg(gam_haxy_yearly, "precip20", partial=FALSE, rug=FALSE, 
                       overlay=TRUE, scale="response", gg=T, ylab="Residual captures", 
                       xlab="Accumulated precipitation", line=list(col="darkorange", lty=2),
-                      fill=list(fill="tan1", alpha=0.5))+
+                      fill=list(fill="darkorange", alpha=0.4))+
   theme_classic()
 haxy.precip20
 
@@ -935,7 +935,7 @@ haxy.precip20
 haxy.precip35<-visreg(gam_haxy_yearly, "precip35.dif", partial=FALSE, rug=FALSE, 
                       overlay=TRUE, scale="response", gg=T, ylab="Residual captures", 
                       xlab="Competitor captures", line=list(col="darkorange", lty=2),
-                      fill=list(fill="tan1", alpha=0.5))+
+                      fill=list(fill="darkorange", alpha=0.4))+
   theme_classic()
 haxy.precip35
 
