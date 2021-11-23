@@ -901,17 +901,30 @@ haxy.c7.y
 # visreg(gam_haxy_yearly, "dd20", partial=FALSE, rug=FALSE, 
 #        overlay=TRUE, scale="response")
 
-visreg(gam_haxy_yearly, "dd25.dif", partial=FALSE, rug=FALSE, 
-       overlay=TRUE, scale="response")
+haxy.dd25<-visreg(gam_haxy_yearly, "dd25.dif", partial=FALSE, rug=FALSE, 
+                  overlay=TRUE, scale="response", gg=T, ylab="Residual captures", 
+                  xlab="Degree day accumulation", line=list(col="darkorange", lty=2),
+                  fill=list(fill="tan1", alpha=0.5))+
+  theme_classic()
+haxy.dd25
 
-visreg(gam_haxy_yearly, "dd30.dif", partial=FALSE, rug=FALSE,
-       overlay=TRUE, scale="response")
+
+haxy.dd30<-visreg(gam_haxy_yearly, "dd30.dif", partial=FALSE, rug=FALSE,
+                  overlay=TRUE, scale="response", gg=T, ylab="Residual captures", 
+                  xlab="Degree day accumulation", line=list(col="darkorange", lty=2),
+                  fill=list(fill="tan1", alpha=0.5))+
+  theme_classic()
+haxy.dd30
 
 # visreg(gam_haxy_yearly, "dd35.dif", partial=FALSE, rug=FALSE, 
 #        overlay=TRUE, scale="response")
 
-visreg(gam_haxy_yearly, "precip20", partial=FALSE, rug=FALSE, 
-       overlay=TRUE, scale="response")
+haxy.precip20<-visreg(gam_haxy_yearly, "precip20", partial=FALSE, rug=FALSE, 
+                      overlay=TRUE, scale="response", gg=T, ylab="Residual captures", 
+                      xlab="Accumulated precipitation", line=list(col="darkorange", lty=2),
+                      fill=list(fill="tan1", alpha=0.5))+
+  theme_classic()
+haxy.precip20
 
 # visreg(gam_haxy_yearly, "precip25.dif", partial=FALSE, rug=FALSE, 
 #        overlay=TRUE, scale="response")
@@ -919,9 +932,12 @@ visreg(gam_haxy_yearly, "precip20", partial=FALSE, rug=FALSE,
 # visreg(gam_haxy_yearly, "precip30.dif", partial=FALSE, rug=FALSE, 
 #        overlay=TRUE)
 
-visreg(gam_haxy_yearly, "precip35.dif", partial=FALSE, rug=FALSE, 
-       overlay=TRUE)
-
+haxy.precip35<-visreg(gam_haxy_yearly, "precip35.dif", partial=FALSE, rug=FALSE, 
+                      overlay=TRUE, scale="response", gg=T, ylab="Residual captures", 
+                      xlab="Competitor captures", line=list(col="darkorange", lty=2),
+                      fill=list(fill="tan1", alpha=0.5))+
+  theme_classic()
+haxy.precip35
 
 
 ##### now C7
@@ -950,15 +966,21 @@ concurvity(gam_c7_yearly)
 C7.haxy.y<-visreg(gam_c7_yearly, "HAXY", partial=FALSE, rug=FALSE, 
                   overlay=TRUE, scale="response", gg=T, ylab="Residual captures",
                   xlab="Competitor captures",line=list(col="darkred", lty=4),
-                  fill=list(fill="brown1", alpha=0.4))+
+                  fill=list(fill="darkred", alpha=0.4))+
   theme_classic()
 
 C7.haxy.y
 
 
 
-visreg(gam_c7_yearly, "dd20", partial=FALSE, rug=FALSE,
-       overlay=TRUE, scale="response")
+C7.dd20<-visreg(gam_c7_yearly, "dd20", partial=FALSE, rug=FALSE,
+                overlay=TRUE, scale="response", gg=T, ylab="Residual captures",
+                xlab="Degree day accumulation",line=list(col="darkred", lty=4),
+                fill=list(fill="darkred", alpha=0.4))+
+  theme_classic()
+
+C7.dd20
+
 
 # visreg(gam_c7_yearly, "dd25.dif", partial=FALSE, rug=FALSE, 
 #        overlay=TRUE, scale="response")
@@ -966,14 +988,26 @@ visreg(gam_c7_yearly, "dd20", partial=FALSE, rug=FALSE,
 # visreg(gam_c7_yearly, "dd30.dif", partial=FALSE, rug=FALSE,
 #        overlay=TRUE, scale="response")
 
-visreg(gam_c7_yearly, "dd35.dif", partial=FALSE, rug=FALSE,
-       overlay=TRUE, scale="response")
+C7.dd35<-visreg(gam_c7_yearly, "dd35.dif", partial=FALSE, rug=FALSE,
+                overlay=TRUE, scale="response", gg=T, ylab="Residual captures",
+                xlab="Degree day accumulation",line=list(col="darkred", lty=4),
+                fill=list(fill="darkred", alpha=0.4))+
+  theme_classic()
+
+C7.dd35
+
+
 
 # visreg(gam_c7_yearly, "precip20", partial=FALSE, rug=FALSE, 
 #        overlay=TRUE, scale="response")
 
-visreg(gam_c7_yearly, "precip25.dif", partial=FALSE, rug=FALSE,
-       overlay=TRUE, scale="response")
+C7.precip25<-visreg(gam_c7_yearly, "precip25.dif", partial=FALSE, rug=FALSE,
+                    overlay=TRUE, scale="response", gg=T, ylab="Residual captures",
+                    xlab="Accumulated precipitation",line=list(col="darkred", lty=4),
+                    fill=list(fill="darkred", alpha=0.4))+
+  theme_classic()
+
+C7.precip25
 
 # visreg(gam_c7_yearly, "precip30.dif", partial=FALSE, rug=FALSE,
 #        overlay=TRUE)
