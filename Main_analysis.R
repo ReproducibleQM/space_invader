@@ -841,18 +841,6 @@ dd.HAXY.der$slope<-(dd.HAXY.der$predict.dd.HAXY.1-dd.HAXY.der$predict.dd.HAXY)/1
 
 
 
-#Start of population growth dd.accum
-#Peak population growth dd.accum
-#other inflection points dd.accum
-
-#look at the shape of the model for other environmental variables
-#box plot of residuals by species and habitat
-
-
-
-
-
-
 
 #now, what accounts for the year to-year variation in absolute numbers of both species? 
 #let's do another gam, but with the yearly aggregated data and the summary weather metrics
@@ -1009,7 +997,7 @@ C7.haxy.y<-visreg(gam_c7_yearly, "HAXY", partial=F, rug=FALSE,
                   overlay=TRUE,scale="response", gg=T, ylab="",
                   xlab=NULL,line=list(col="darkred", lty=1),
                   fill=list(fill="darkred", alpha=0.4))+
-  coord_cartesian(ylim=c(0, 80))+
+  coord_cartesian(ylim=c(0, 90))+
   theme_classic()+
   geom_vline(xintercept=avg.haxy, linetype="dashed", color="blue", size=1)
 
@@ -1021,7 +1009,7 @@ C7.dd35<-visreg(gam_c7_yearly, "dd35.dif", partial=F, rug=FALSE,
                 overlay=TRUE,scale="response",gg=T, ylab="",
                 xlab=NULL,line=list(col="darkred", lty=1),
                 fill=list(fill="darkred", alpha=0.4))+
-  coord_cartesian(ylim=c(0, 80))+
+  coord_cartesian(ylim=c(0, 90))+
   theme_classic()+
   geom_vline(xintercept=avg.dd35, linetype="dashed", color="blue", size=1)
 
@@ -1034,7 +1022,7 @@ C7.precip20<-visreg(gam_c7_yearly, "precip20", partial=F, rug=FALSE,
                     xlab=NULL,line=list(col="darkred", lty=1),
                     fill=list(fill="darkred", alpha=0.4))+
   
-  coord_cartesian(ylim=c(0, 80))+
+  coord_cartesian(ylim=c(0, 90))+
   theme_classic()+
   geom_vline(xintercept=avg.precip20, linetype="dashed", color="blue", size=1)
 
@@ -1044,7 +1032,7 @@ C7.precip25<-visreg(gam_c7_yearly, "precip25.dif", partial=F, rug=FALSE,
                     overlay=TRUE,scale="response", gg=T, ylab="",
                     xlab=NULL,line=list(col="darkred", lty=1),
                     fill=list(fill="darkred", alpha=0.4))+
-  coord_cartesian(ylim=c(0, 80))+
+  coord_cartesian(ylim=c(0, 90))+
   theme_classic()+
   geom_vline(xintercept=avg.precip25, linetype="dashed", color="blue", size=1)
 
@@ -1056,7 +1044,7 @@ C7.precip35<-visreg(gam_c7_yearly, "precip35.dif", partial=F, rug=FALSE,
                     xlab=NULL,line=list(col="darkred", lty=1),
                     fill=list(fill="darkred", alpha=0.4))+
   
-  coord_cartesian(ylim=c(0, 80))+
+  coord_cartesian(ylim=c(0, 90))+
   theme_classic()+
   geom_vline(xintercept=avg.precip35, linetype="dashed", color="blue", size=1)
 
@@ -1088,4 +1076,6 @@ between_years
 pdf("plots/figurebetweenyeargam.pdf", height=8, width=8)
 between_years
 dev.off()
+
+
 
