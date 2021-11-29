@@ -721,7 +721,8 @@ withinyear.dd<-visreg(gam_lb, "yearly.dd.accum", by="SPID", partial=FALSE, rug=F
   scale_fill_manual(values=alpha(c("darkred", "darkorange"), 0.4), labels=c("C7", "HA"), name="Species")+
   scale_color_manual(values=c("darkred", "darkorange"), labels=c("C7", "HA"), name="Species")+
   labs(x="Degree day accumulation", y="")+
-  theme_classic()+ theme(legend.position = "none")
+  theme_classic()+ theme(legend.position = "none")+
+  coord_cartesian(ylim=c(0, 6))
 
 withinyear.dd
 
@@ -730,7 +731,8 @@ withinyear.rain<-visreg(gam_lb, "rain.days", "SPID", partial=FALSE, rug=FALSE,
   scale_fill_manual(values=alpha(c("darkred", "darkorange"), 0.4), labels=c("C7", "HA"), name="Species")+
   scale_color_manual(values=c("darkred", "darkorange"), labels=c("C7", "HA"), name="Species")+
   labs(x="Rainy days per week", y="")+
-  theme_classic()+ theme(legend.position = "none")
+  theme_classic()+ theme(legend.position = "none")+
+  coord_cartesian(ylim=c(0, 6))
 
 withinyear.rain
 
@@ -741,7 +743,8 @@ withinyear.habitat<-visreg(gam_lb, "HABITAT","SPID", partial=FALSE, rug=FALSE,
   scale_fill_manual(values=alpha(c("darkred", "darkorange"), 0.4), labels=c("C7", "HA"), name="Species")+
   scale_color_manual(values=c("darkred", "darkorange"), labels=c("C7", "HA"), name="Species")+
   labs(x="Habitat", y="")+
-  theme_classic()+ theme(legend.position = "none", axis.text.x=element_text(angle=90, vjust=0.5, hjust=1))
+  theme_classic()+ theme(legend.position = "none", axis.text.x=element_text(angle=90, vjust=0.5, hjust=1))+
+  coord_cartesian(ylim=c(0, 6))
 
 withinyear.habitat
 
@@ -751,7 +754,8 @@ withinyear.yearly<-visreg(gam_lb, "year", "SPID", partial=FALSE, rug=FALSE,
   scale_fill_manual(values=alpha(c("darkred", "darkorange"), 0.4), labels=c("C7", "HA"), name="Species")+
   scale_color_manual(values=c("darkred", "darkorange"), labels=c("C7", "HA"), name="Species")+
   labs(x="Year\n\n\n", y="")+
-  theme_classic()
+  theme_classic()+ theme(legend.position = c(0.92, 0.85),legend.background = element_rect(fill='transparent'))+
+  coord_cartesian(ylim=c(0, 6))
 
 withinyear.yearly
 
@@ -865,19 +869,40 @@ lb_yearly_weather<-merge(lb_yearly_2, weather_yearly, all.x=T)
 
 
 #another gam using this data aggregated by year but not by rep, and because the
-#species seem to be responding to different factors, let's do one at a time
+#species seem to be responding to different factors, let's do one at a time. Because autocorrelation, let's do
+#a forward selection
 
+#first let's find out what's super-correlated
+
+target_data<-lb_yearly_weather[,c(8,12:15,19:21)]
+
+cor(target_data, method = "spearman")
+#let's flag things that are >abs(0.3)
+#dd20 and dd25 (0.27)
+#dd25 and dd30 (0.45)
+#dd25 and dd35 (0.34)
+#dd30 and dd35 (0.39)
+#p25 and d30 (-0.26)
+#p25 and d35 (-0.28)
+#p30 and p35 (-0.27)
+#p35 and d30 (-0.31)
+
+#model selection criteria- add params one by one by highest F value.
+#in subsequent steps, eliminate params with >abs(0.3) Spearman correlation with any parameters in model
+#each time a parameter is added, check concurvity, if it exceeds 0.5 (observed) for any parameter, eliminate
+#that parameter from consideration
 
 
 gam_haxy_yearly<-gam(HAXY~s(C7, sp=1, k=4)+
-                     #s(dd20, sp=1, k=4)+
-                     s(dd25.dif, sp=1, k=4)+
-                     s(dd30.dif, sp=1, k=4)+
-                     #s(dd35.dif, sp=1, k=4)+
-                     s(precip20, sp=1, k=4)+
-                     #s(precip25.dif, sp=1, k=4)+
-                     #s(precip30.dif, sp=1, k=4)+
-                     s(precip35.dif, sp=1, k=4)+HABITAT+
+                     s(dd20, sp=1, k=3)+
+                     #s(dd25.dif, sp=1, k=3)+
+                     #s(dd30.dif, sp=1, k=3)+
+                     s(dd35.dif, sp=1, k=3)+
+                     s(precip20, sp=1, k=3)+
+                     s(precip25.dif, sp=1, k=3)+
+                     #s(precip30.dif, sp=1, k=3)+
+                     #s(precip35.dif, sp=1, k=3)+
+                       HABITAT+
                      offset(log(TRAPS)), data=lb_yearly_weather, family="quasipoisson", method="REML")
 summary(gam_haxy_yearly)
 anova.gam(gam_haxy_yearly)
@@ -888,71 +913,85 @@ anova.gam(gam_haxy_yearly)
 
 concurvity(gam_haxy_yearly, full=T)
 
-#eliminate variables with least explanatory power (Lower F) from set with high concurvity, from each dd and precip set
-#remove precip25,then dd35, dd.20, then p30
+#for plotting purposes, let's also pull the average value of each weather measurement
+
+avg.dd20<-mean(weather_yearly$dd20)
+avg.dd25<-mean(weather_yearly$dd25.dif)
+avg.dd30<-mean(weather_yearly$dd30.dif)
+avg.dd35<-mean(weather_yearly$dd35.dif)
+avg.precip20<-mean(weather_yearly$precip20)
+avg.precip25<-mean(weather_yearly$precip25.dif)
+avg.precip30<-mean(weather_yearly$precip30.dif)
+avg.precip35<-mean(weather_yearly$precip35.dif)
+
+avg.haxy<-mean(lb_yearly_weather$HAXY)
+avg.c7<-mean(lb_yearly_weather$C7)
 
 
-haxy.c7.y<-visreg(gam_haxy_yearly, "C7", partial=FALSE, rug=FALSE, 
+haxy.c7.y<-visreg(gam_haxy_yearly, "C7", partial=F, rug=FALSE, 
        overlay=TRUE, scale="response", gg=T, ylab="", 
-       xlab=NULL, line=list(col="darkorange", lty=2),
+       xlab=NULL, line=list(col="darkorange", lty=1),
        fill=list(fill="darkorange", alpha=0.4))+
-  theme_classic()
+  coord_cartesian(ylim=c(0, 14))+
+  theme_classic()+
+  geom_vline(xintercept=avg.c7, linetype="dashed", color="blue", size=1)
 
 haxy.c7.y
 
-# visreg(gam_haxy_yearly, "dd20", partial=FALSE, rug=FALSE, 
-#        overlay=TRUE, scale="response")
 
-haxy.dd25<-visreg(gam_haxy_yearly, "dd25.dif", partial=FALSE, rug=FALSE, 
-                  overlay=TRUE, scale="response", gg=T, ylab="", 
-                  xlab=NULL, line=list(col="darkorange", lty=2),
+haxy.dd20<-visreg(gam_haxy_yearly, "dd20", partial=F, rug=FALSE, 
+                  overlay=TRUE,scale="response", gg=T, ylab="", 
+                  xlab=NULL, line=list(col="darkorange", lty=1),
                   fill=list(fill="darkorange", alpha=0.4))+
-  theme_classic()
-haxy.dd25
+  coord_cartesian(ylim=c(0, 14))+
+  theme_classic()+
+  geom_vline(xintercept=avg.dd20, linetype="dashed", color="blue", size=1)
+haxy.dd20
 
 
-haxy.dd30<-visreg(gam_haxy_yearly, "dd30.dif", partial=FALSE, rug=FALSE,
-                  overlay=TRUE, scale="response", gg=T, ylab="", 
-                  xlab=NULL, line=list(col="darkorange", lty=2),
+haxy.dd35<-visreg(gam_haxy_yearly, "dd35.dif", partial=F, rug=FALSE,
+                  overlay=TRUE,scale="response", gg=T, ylab="", 
+                  xlab=NULL, line=list(col="darkorange", lty=1),
                   fill=list(fill="darkorange", alpha=0.4))+
-  theme_classic()
-haxy.dd30
+  coord_cartesian(ylim=c(0, 14))+
+  theme_classic()+
+  geom_vline(xintercept=avg.dd35, linetype="dashed", color="blue", size=1)
 
-# visreg(gam_haxy_yearly, "dd35.dif", partial=FALSE, rug=FALSE, 
-#        overlay=TRUE, scale="response")
+haxy.dd35
 
-haxy.precip20<-visreg(gam_haxy_yearly, "precip20", partial=FALSE, rug=FALSE, 
-                      overlay=TRUE, scale="response", gg=T, ylab="", 
-                      xlab=NULL, line=list(col="darkorange", lty=2),
+
+
+haxy.precip20<-visreg(gam_haxy_yearly, "precip20", partial=F, rug=FALSE, 
+                      overlay=TRUE,scale="response", gg=T, ylab="", 
+                      xlab=NULL, line=list(col="darkorange", lty=1),
                       fill=list(fill="darkorange", alpha=0.4))+
-  theme_classic()
+  coord_cartesian(ylim=c(0, 14))+
+  theme_classic()+
+  geom_vline(xintercept=avg.precip20, linetype="dashed", color="blue", size=1)
 haxy.precip20
 
-# visreg(gam_haxy_yearly, "precip25.dif", partial=FALSE, rug=FALSE, 
-#        overlay=TRUE, scale="response")
 
-# visreg(gam_haxy_yearly, "precip30.dif", partial=FALSE, rug=FALSE, 
-#        overlay=TRUE)
-
-haxy.precip35<-visreg(gam_haxy_yearly, "precip35.dif", partial=FALSE, rug=FALSE, 
-                      overlay=TRUE, scale="response", gg=T, ylab="", 
-                      xlab=NULL, line=list(col="darkorange", lty=2),
+haxy.precip25<-visreg(gam_haxy_yearly, "precip25.dif", partial=F, rug=FALSE, 
+                      overlay=TRUE,scale="response", gg=T, ylab="", 
+                      xlab=NULL, line=list(col="darkorange", lty=1),
                       fill=list(fill="darkorange", alpha=0.4))+
-  theme_classic()
-haxy.precip35
+  coord_cartesian(ylim=c(0, 14))+
+  theme_classic()+
+  geom_vline(xintercept=avg.precip25, linetype="dashed", color="blue", size=1)
+haxy.precip25
 
 
 ##### now C7
 
 gam_c7_yearly<-gam(C7~s(HAXY, sp=1, k=4)+
-                       s(dd20, sp=1, k=4)+
+                       #s(dd20, sp=1, k=4)+
                        #s(dd25.dif, sp=1, k=4)+
                        #s(dd30.dif, sp=1, k=4)+
                        s(dd35.dif, sp=1, k=4)+
                        s(precip20, sp=1, k=4)+
                        s(precip25.dif, sp=1, k=4)+
                        #s(precip30.dif, sp=1, k=4)+
-                       #s(precip35.dif, sp=1, k=4)+
+                       s(precip35.dif, sp=1, k=4)+
                      HABITAT+
                        offset(log(TRAPS)), data=lb_yearly_weather, family="quasipoisson", method="REML")
 summary(gam_c7_yearly)
@@ -963,67 +1002,66 @@ anova.gam(gam_c7_yearly)
 
 
 concurvity(gam_c7_yearly, full=TRUE)
-#eliminate variables with least explanatory power (Lower F) from set with high concurvity (<0.5)
-# start with dd25,dd30, p30
 
 
 
-C7.haxy.y<-visreg(gam_c7_yearly, "HAXY", partial=FALSE, rug=FALSE, 
-                  overlay=TRUE, scale="response", gg=T, ylab="",
-                  xlab=NULL,line=list(col="darkred", lty=4),
+C7.haxy.y<-visreg(gam_c7_yearly, "HAXY", partial=F, rug=FALSE, 
+                  overlay=TRUE,scale="response", gg=T, ylab="",
+                  xlab=NULL,line=list(col="darkred", lty=1),
                   fill=list(fill="darkred", alpha=0.4))+
-  theme_classic()
+  coord_cartesian(ylim=c(0, 80))+
+  theme_classic()+
+  geom_vline(xintercept=avg.haxy, linetype="dashed", color="blue", size=1)
 
 C7.haxy.y
 
 
 
-C7.dd20<-visreg(gam_c7_yearly, "dd20", partial=FALSE, rug=FALSE,
-                overlay=TRUE, scale="response", gg=T, ylab="",
-                xlab=NULL,line=list(col="darkred", lty=4),
+C7.dd35<-visreg(gam_c7_yearly, "dd35.dif", partial=F, rug=FALSE,
+                overlay=TRUE,scale="response",gg=T, ylab="",
+                xlab=NULL,line=list(col="darkred", lty=1),
                 fill=list(fill="darkred", alpha=0.4))+
-  theme_classic()
-
-C7.dd20
-
-
-# visreg(gam_c7_yearly, "dd25.dif", partial=FALSE, rug=FALSE, 
-#        overlay=TRUE, scale="response")
-# 
-# visreg(gam_c7_yearly, "dd30.dif", partial=FALSE, rug=FALSE,
-#        overlay=TRUE, scale="response")
-
-C7.dd35<-visreg(gam_c7_yearly, "dd35.dif", partial=FALSE, rug=FALSE,
-                overlay=TRUE, scale="response", gg=T, ylab="",
-                xlab=NULL,line=list(col="darkred", lty=4),
-                fill=list(fill="darkred", alpha=0.4))+
-  theme_classic()
+  coord_cartesian(ylim=c(0, 80))+
+  theme_classic()+
+  geom_vline(xintercept=avg.dd35, linetype="dashed", color="blue", size=1)
 
 C7.dd35
 
 
 
-C7.precip20<-visreg(gam_c7_yearly, "precip20", partial=FALSE, rug=FALSE,
-                    overlay=TRUE, scale="response", gg=T, ylab="",
-                    xlab=NULL,line=list(col="darkred", lty=4),
+C7.precip20<-visreg(gam_c7_yearly, "precip20", partial=F, rug=FALSE,
+                    overlay=TRUE,scale="response", gg=T, ylab="",
+                    xlab=NULL,line=list(col="darkred", lty=1),
                     fill=list(fill="darkred", alpha=0.4))+
-  theme_classic()
+  
+  coord_cartesian(ylim=c(0, 80))+
+  theme_classic()+
+  geom_vline(xintercept=avg.precip20, linetype="dashed", color="blue", size=1)
 
 C7.precip20
 
-C7.precip25<-visreg(gam_c7_yearly, "precip25.dif", partial=FALSE, rug=FALSE,
-                    overlay=TRUE, scale="response", gg=T, ylab="",
-                    xlab=NULL,line=list(col="darkred", lty=4),
+C7.precip25<-visreg(gam_c7_yearly, "precip25.dif", partial=F, rug=FALSE,
+                    overlay=TRUE,scale="response", gg=T, ylab="",
+                    xlab=NULL,line=list(col="darkred", lty=1),
                     fill=list(fill="darkred", alpha=0.4))+
-  theme_classic()
+  coord_cartesian(ylim=c(0, 80))+
+  theme_classic()+
+  geom_vline(xintercept=avg.precip25, linetype="dashed", color="blue", size=1)
 
 C7.precip25
 
-# visreg(gam_c7_yearly, "precip30.dif", partial=FALSE, rug=FALSE,
-#        overlay=TRUE)
 
-# visreg(gam_c7_yearly, "precip35.dif", partial=FALSE, rug=FALSE, 
-#        overlay=TRUE)
+C7.precip35<-visreg(gam_c7_yearly, "precip35.dif", partial=F, rug=FALSE,
+                    overlay=TRUE, scale="response", gg=T, ylab="",
+                    xlab=NULL,line=list(col="darkred", lty=1),
+                    fill=list(fill="darkred", alpha=0.4))+
+  
+  coord_cartesian(ylim=c(0, 80))+
+  theme_classic()+
+  geom_vline(xintercept=avg.precip35, linetype="dashed", color="blue", size=1)
+
+C7.precip35
+
 
 blankspace<-text_grob(paste(""), color="black")
 harmonia<-text_grob(paste("Harmonia axyridis"), color="black", face="italic", size=13)
@@ -1038,15 +1076,16 @@ precip20<-text_grob(paste("Precipitation\nat 20 weeks"), color="black", size=11)
 #create a giant flippin' plot with all the panels
 
 between_years<-plot_grid(blankspace, harmonia, coccinella,
-                         Competitor, haxy.c7.y, C7.haxy.y,
-                         dd20, blankspace, C7.dd20, 
-                         dd25, haxy.dd25, blankspace, 
-                         dd30, haxy.dd30, blankspace, 
-                         dd35, blankspace, C7.dd35, 
+                         dd20, haxy.dd20, blankspace,
+                         dd35, haxy.dd35, C7.dd35, 
                          precip20, haxy.precip20, C7.precip20, 
-                         dd25, blankspace, C7.precip25, 
-                         dd30, blankspace, blankspace,
-                         dd35, haxy.precip35, blankspace, 
-                         ncol=3, rel_widths=c(1,4,4), align="v", axis="l")
+                         dd25, haxy.precip25, C7.precip25,
+                         dd35, blankspace, C7.precip35, 
+                         ncol=3, rel_widths=c(1,4,4),rel_heights = c(0.3,1,1,1,1,1), align="v", axis="l")
 
 between_years
+
+pdf("plots/figurebetweenyeargam.pdf", height=8, width=8)
+between_years
+dev.off()
+
