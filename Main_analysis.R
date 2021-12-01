@@ -102,20 +102,21 @@ lb_yearly_boxplot
 
 #let's look at the populations over time instead
 lb_yearly_plot<-ggplot(lb_yearly, aes(x=Year, y=SumOfADULTS, fill=SPID, shape=SPID, linetype=SPID, color=SPID))+
-  geom_point(size=2)+
+  geom_point(size=0.5, position="jitter", alpha=0.5)+
   geom_smooth()+
   scale_fill_manual(values=c("darkred", "darkorange"), labels=c("C7", "HA"), name="Species")+
   scale_color_manual(values=c("darkred", "darkorange"), labels=c("C7", "HA"), name="Species")+
   scale_shape_manual(values=c(4, 1), labels=c("C7", "HA"), name="Species")+
-  scale_linetype_manual(values=c(2, 4), labels=c("C7", "HA"), name="Species")+
+  scale_linetype_manual(values=c(1, 1), labels=c("C7", "HA"), name="Species")+
   labs(x="Year", y="Captures per trap")+
-  theme_classic()
+  theme_classic()+ theme(legend.position = c(0.92, 0.85),legend.background = element_rect(fill='transparent'))
 lb_yearly_plot
 
 library(cowplot)
 library(grid)
 
-rawtrends<-plot_grid(lb_yearly_plot, lb_yearly_boxplot,  ncol=1, rel_widths=c(1), labels=c('A', 'B'))
+rawtrends<-plot_grid(lb_yearly_plot, lb_yearly_boxplot,  ncol=1, rel_widths=c(1), labels=c('A', 'B'), 
+                     align="v", axis="l")
 
 rawtrends
 
