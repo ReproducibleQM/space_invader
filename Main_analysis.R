@@ -37,8 +37,8 @@ summary(LB)#bingo! looks like it worked!
 #let's reorder our habitats right here at the top
 LB$HABITAT<-factor(LB$HABITAT, 
                    levels=c("maize", "soybeans","wheat", "alfalfa", "poplar", "ES", "Coniferous", "Deciduous", "Succesional"))
-#and relabel themso they're in the same case
-levels(LB$HABITAT)<-c("maize", "soybeans","wheat", "alfalfa", "poplar", "ES", "coniferous", "deciduous", "succesional")
+#and relabel them so they're in the same case
+levels(LB$HABITAT)<-c("maize", "soybean","wheat", "alfalfa", "poplar", "ES", "coniferous", "deciduous", "succesional")
 
 
 #let's take a look at ladybeetles by treatment
@@ -591,8 +591,8 @@ ord.year<-metaMDS(com.matrix.year, autotransform=TRUE)
 ord.year
 
 plot(ord.year, disp='sites', type='n')
-points(ord.year, display="sites", select=which(landscape.year$SPID=="HAXY"), pch=19, col="orange")
-points(ord.year, display="sites", select=which(landscape.year$SPID=="C7"), pch=15, col="red")
+points(ord.year, display="sites", select=which(landscape.year$SPID=="HAXY"), pch=15, col="orange")
+points(ord.year, display="sites", select=which(landscape.year$SPID=="C7"), pch=19, col="red")
 ordilabel(ord.year, display="species", cex=0.75, col="black")
 
 #bring the relevant environmental data back into our enviromental frame
@@ -630,8 +630,8 @@ ord.week<-metaMDS(com.matrix.week, autotransform=TRUE)
 ord.week
 
 plot(ord.week, disp='sites', type='n')
-points(ord.week, display="sites", select=which(landscape.week.1$SPID=="HAXY"), pch=19, cex=0.5,col="orange")
-points(ord.week, display="sites", select=which(landscape.week.1$SPID=="C7"), pch=15, cex=0.5, col="red")
+points(ord.week, display="sites", select=which(landscape.week.1$SPID=="HAXY"), pch=15, cex=0.5,col="orange")
+points(ord.week, display="sites", select=which(landscape.week.1$SPID=="C7"), pch=19, cex=0.5, col="red")
 ordilabel(ord.week, display="species", cex=0.75, col="black")
 
 #bring the relevant environmental data back into our environmental frame
@@ -677,15 +677,15 @@ pdf("plots/figureNMSDs.pdf", height=10, width=8)
 par(mfrow=c(2,1), mar=c(4.1, 4.8, 1.5, 8.1),xpd=TRUE) 
 
 plot(ord.year, disp='sites', type='n')
-points(ord.year, display="sites", select=which(landscape.year$SPID=="HAXY"), pch=4, cex=0.5, col="darkorange")
-points(ord.year, display="sites", select=which(landscape.year$SPID=="C7"), pch=1, cex=0.5, col="darkred")
+points(ord.year, display="sites", select=which(landscape.year$SPID=="HAXY"), pch=1, cex=0.5, col="darkorange")
+points(ord.year, display="sites", select=which(landscape.year$SPID=="C7"), pch=4, cex=0.5, col="darkred")
 ordilabel(ord.year, display="species", cex=0.75, col="black")
 plot(fit.year)
 text(-1.45, 0.95, "A", cex=2)
 
 plot(ord.week, disp='sites', type='n')
-points(ord.week, display="sites", select=which(landscape.week.1$SPID=="HAXY"), pch=4, cex=0.5,col="darkorange")
-points(ord.week, display="sites", select=which(landscape.week.1$SPID=="C7"), pch=1, cex=0.5, col="darkred")
+points(ord.week, display="sites", select=which(landscape.week.1$SPID=="HAXY"), pch=1, cex=0.5,col="darkorange")
+points(ord.week, display="sites", select=which(landscape.week.1$SPID=="C7"), pch=4, cex=0.5, col="darkred")
 ordilabel(ord.week, display="species", cex=0.75, col="black")
 plot(fit.week)
 text(-1.9,1.46, "B", cex=2)
@@ -707,7 +707,7 @@ gam_lb<-gam(SumOfADULTS~s(yearly.dd.accum, by=as.factor(SPID), sp=1)+
               s(rain.days, by=as.factor(SPID), sp=1, k=3)+
               HABITAT*SPID+
               s(year, by=as.factor(SPID), sp=1)+
-              offset(log(TRAPS)), method="REML", data=lb_all, family="poisson")
+              offset(log(TRAPS)), method="REML", data=lb_all, family="quasipoisson")
 summary(gam_lb)
 anova.gam(gam_lb)
 
@@ -977,7 +977,7 @@ gam_c7_yearly<-gam(C7~s(HAXY, sp=1, k=4)+
                        #s(dd25.dif, sp=1, k=4)+
                        #s(dd30.dif, sp=1, k=4)+
                        s(dd35.dif, sp=1, k=4)+
-                       s(precip20, sp=1, k=4)+
+                       s(precip20, sp=1, k=4)+ 
                        s(precip25.dif, sp=1, k=4)+
                        #s(precip30.dif, sp=1, k=4)+
                        s(precip35.dif, sp=1, k=4)+
