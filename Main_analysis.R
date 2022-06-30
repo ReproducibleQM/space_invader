@@ -700,11 +700,33 @@ dev.off()
 library(mgcv)
 library(visreg)
 library(ggpubr)
+library(Hmisc)
 
+#pearson correlation of environmental parameters
+
+round(cor(lb_all[10:19], method="pearson"), digits=2)
 #start withe the drivers of within-year variation
 
+library(psych)
+pairs.panels(lb_all[c(10,11,13:19)], #drop 'weeekly preciptiation because it's = mean daily precip*7
+             method = "pearson", # correlation method
+             hist.col = "#00AFBB",
+             density = TRUE,  # show density plots
+             ellipses = FALSE # show correlation ellipses
+)
+
+pdf("plots/figurewithinyearpairsplot.pdf", height=6, width=8)
+pairs.panels(lb_all[c(10,11,13:19)], #drop 'weekly precipitation because it's = mean daily precip*7
+             method = "pearson", # correlation method
+             hist.col = "#00AFBB",
+             density = TRUE,  # show density plots
+             ellipses = FALSE # show correlation ellipses
+)
+dev.off()
+
 gam_lb<-gam(SumOfADULTS~s(yearly.dd.accum, by=as.factor(SPID), sp=1)+
-              s(rain.days, by=as.factor(SPID), sp=1, k=3)+
+              s(max.rainfall, by=as.factor(SPID), sp=1)+
+              s(max.temp, by=as.factor(SPID), sp=1)+
               HABITAT*SPID+
               s(year, by=as.factor(SPID), sp=1)+
               offset(log(TRAPS)), method="REML", data=lb_all, family="quasipoisson")
@@ -714,8 +736,12 @@ anova.gam(gam_lb)
 #check concurvity
 concurvity(gam_lb)
 #looks fine, sweet!
+gam.check(gam_lb)
 
 #let's visualize this!
+#must detach psych- it conflicts with ggplot
+detach(package:psych,unload=TRUE)
+
 withinyear.dd<-visreg(gam_lb, "yearly.dd.accum", by="SPID", partial=FALSE, rug=FALSE, 
                       overlay=TRUE, scale="response", gg=TRUE,
                       line=list(lty=1))+
@@ -723,19 +749,30 @@ withinyear.dd<-visreg(gam_lb, "yearly.dd.accum", by="SPID", partial=FALSE, rug=F
   scale_color_manual(values=c("darkred", "darkorange"), labels=c("C7", "HA"), name="Species")+
   labs(x="Degree day accumulation", y="")+
   theme_classic()+ theme(legend.position = "none")+
-  coord_cartesian(ylim=c(0, 6))
+  coord_cartesian(ylim=c(0, 8))
 
 withinyear.dd
 
-withinyear.rain<-visreg(gam_lb, "rain.days", "SPID", partial=FALSE, rug=FALSE, 
+withinyear.rain<-visreg(gam_lb, "max.rainfall", "SPID", partial=FALSE, rug=FALSE, 
        overlay=TRUE, scale="response", gg=TRUE, line=list(lty=1))+
   scale_fill_manual(values=alpha(c("darkred", "darkorange"), 0.4), labels=c("C7", "HA"), name="Species")+
   scale_color_manual(values=c("darkred", "darkorange"), labels=c("C7", "HA"), name="Species")+
-  labs(x="Rainy days per week", y="")+
+  labs(x="Maximum daily rainfall within week (mm)", y="")+
   theme_classic()+ theme(legend.position = "none")+
-  coord_cartesian(ylim=c(0, 6))
+  coord_cartesian(ylim=c(0, 8))
 
 withinyear.rain
+
+withinyear.temp<-visreg(gam_lb, "max.temp", "SPID", partial=FALSE, rug=FALSE, 
+                        overlay=TRUE, scale="response", gg=TRUE, line=list(lty=1))+
+  scale_fill_manual(values=alpha(c("darkred", "darkorange"), 0.4), labels=c("C7", "HA"), name="Species")+
+  scale_color_manual(values=c("darkred", "darkorange"), labels=c("C7", "HA"), name="Species")+
+  labs(x="Maximum temperature within week (C)", y="")+
+  theme_classic()+ theme(legend.position = "none")+
+  coord_cartesian(ylim=c(0, 8))
+
+withinyear.temp
+
 
 
 withinyear.habitat<-visreg(gam_lb, "HABITAT","SPID", partial=FALSE, rug=FALSE, 
@@ -745,7 +782,7 @@ withinyear.habitat<-visreg(gam_lb, "HABITAT","SPID", partial=FALSE, rug=FALSE,
   scale_color_manual(values=c("darkred", "darkorange"), labels=c("C7", "HA"), name="Species")+
   labs(x="Habitat", y="")+
   theme_classic()+ theme(legend.position = "none", axis.text.x=element_text(angle=90, vjust=0.5, hjust=1))+
-  coord_cartesian(ylim=c(0, 6))
+  coord_cartesian(ylim=c(0, 8))
 
 withinyear.habitat
 
@@ -756,14 +793,14 @@ withinyear.yearly<-visreg(gam_lb, "year", "SPID", partial=FALSE, rug=FALSE,
   scale_color_manual(values=c("darkred", "darkorange"), labels=c("C7", "HA"), name="Species")+
   labs(x="Year\n\n\n", y="")+
   theme_classic()+ theme(legend.position = c(0.92, 0.85),legend.background = element_rect(fill='transparent'))+
-  coord_cartesian(ylim=c(0, 6))
+  coord_cartesian(ylim=c(0, 8))
 
 withinyear.yearly
 
 #plot the withinyear model all together:
 
-withinyear.modelplot<-plot_grid(withinyear.dd, withinyear.rain, withinyear.habitat, withinyear.yearly, 
-                              ncol=2, rel_widths=c(1, 1), rel_heights = c(0.85, 1), labels=c('A', 'B', 'C', 'D'))
+withinyear.modelplot<-plot_grid(withinyear.dd, withinyear.rain, withinyear.temp, withinyear.habitat, withinyear.yearly, 
+                              ncol=3, rel_widths=c(1, 1, 1), rel_heights = c(0.85, 1), labels=c('A', 'B', 'C', 'D', 'E'))
 withinyear.modelplot
 
 #create overall y axis label
@@ -775,7 +812,7 @@ withinyear.plot<-plot_grid(partresid, withinyear.modelplot, ncol=2, rel_widths =
 
 withinyear.plot
 
-pdf("plots/figurewithinyeargam.pdf", height=5, width=8)
+pdf("plots/figurewithinyeargam.pdf", height=5, width=10)
 withinyear.plot
 dev.off()
 
@@ -793,7 +830,8 @@ newData.C7 <- with(lb_all,
                   data.frame(yearly.dd.accum = seq(0, 1500, length = 300),
                              TRAPS=5, 
                              year=mean(year), 
-                             rain.days=median(rain.days), 
+                             max.rainfall=mean(max.rainfall), 
+                             max.temp=mean(max.temp), 
                              SPID="C7", 
                              HABITAT="alfalfa"))
 
@@ -802,7 +840,8 @@ newData.C7.1<- with(lb_all,
                      data.frame(yearly.dd.accum = seq(1, 1501, length = 300),
                                 TRAPS=5, 
                                 year=mean(year), 
-                                rain.days=median(rain.days), 
+                                max.rainfall=mean(max.rainfall),
+                                max.temp=mean(max.temp), 
                                 SPID="C7", 
                                 HABITAT="alfalfa"))
 
@@ -819,7 +858,8 @@ newData.HAXY <- with(lb_all,
                    data.frame(yearly.dd.accum = seq(0, 1500, length = 300),
                               TRAPS=5, 
                               year=mean(year), 
-                              rain.days=median(rain.days), 
+                              max.rainfall=mean(max.rainfall), 
+                              max.temp=mean(max.temp), 
                               SPID="HAXY", 
                               HABITAT="alfalfa"))
 
@@ -828,7 +868,8 @@ newData.HAXY.1<- with(lb_all,
                     data.frame(yearly.dd.accum = seq(1, 1501, length = 300),
                                TRAPS=5, 
                                year=mean(year), 
-                               rain.days=median(rain.days), 
+                               max.rainfall=mean(max.rainfall),
+                               max.temp=mean(max.temp), 
                                SPID="HAXY", 
                                HABITAT="alfalfa"))
 
@@ -865,32 +906,44 @@ lb_yearly_weather<-merge(lb_yearly_2, weather_yearly, all.x=T)
 
 target_data<-lb_yearly_weather[,c(8,12:15,19:21)]
 
-cor(target_data, method = "spearman")
+cor(target_data, method = "pearson")
 #let's flag things that are >abs(0.3)
-#dd20 and dd25 (0.27)
-#dd25 and dd30 (0.45)
-#dd25 and dd35 (0.34)
-#dd30 and dd35 (0.39)
-#p25 and d30 (-0.26)
-#p25 and d35 (-0.28)
-#p30 and p35 (-0.27)
-#p35 and d30 (-0.31)
+
+library(psych)
+pairs.panels(target_data, 
+             method = "pearson", # correlation method
+             hist.col = "#00AFBB",
+             density = TRUE,  # show density plots
+             ellipses = FALSE # show correlation ellipses
+)
+
+
+pdf("plots/figurebetweenyearpairsplot.pdf", height=6, width=8)
+pairs.panels(target_data, 
+             method = "pearson", # correlation method
+             hist.col = "#00AFBB",
+             density = TRUE,  # show density plots
+             ellipses = FALSE # show correlation ellipses
+)
+dev.off()
+
+#must detach psych- it conflicts with ggplot
+detach(package:psych,unload=TRUE)
 
 #model selection criteria- add params one by one by highest F value.
-#in subsequent steps, eliminate params with >abs(0.3) Spearman correlation with any parameters in model
+#in subsequent steps, eliminate params with >abs(0.3) Pearson correlation with any parameters in model
 #each time a parameter is added, check concurvity, if it exceeds 0.5 (observed) for any parameter, eliminate
 #that parameter from consideration
 
 
-gam_haxy_yearly<-gam(HAXY~s(C7, sp=1, k=4)+
-                     s(dd20, sp=1, k=3)+
-                     #s(dd25.dif, sp=1, k=3)+
-                     #s(dd30.dif, sp=1, k=3)+
-                     s(dd35.dif, sp=1, k=3)+
-                     s(precip20, sp=1, k=3)+
-                     s(precip25.dif, sp=1, k=3)+
-                     #s(precip30.dif, sp=1, k=3)+
-                     #s(precip35.dif, sp=1, k=3)+
+gam_haxy_yearly<-gam(HAXY~#s(dd20, sp=1)+
+                     #s(dd25.dif, sp=1)+
+                     s(dd30.dif, sp=1)+
+                     #s(dd35.dif, sp=1)+
+                     s(precip20, sp=1)+
+                     #s(precip25.dif, sp=1)+
+                     #s(precip30.dif, sp=1)+
+                     s(precip35.dif, sp=1)+
                        HABITAT+
                      offset(log(TRAPS)), data=lb_yearly_weather, family="quasipoisson", method="REML")
 summary(gam_haxy_yearly)
@@ -900,7 +953,9 @@ anova.gam(gam_haxy_yearly)
 #check concurvity to see if it needs simplification- aim to get observed <0.5 for all pairwise comparisons of variables
 
 
-concurvity(gam_haxy_yearly, full=T)
+concurvity(gam_haxy_yearly)
+
+gam.check(gam_haxy_yearly)
 
 #for plotting purposes, let's also pull the average value of each weather measurement
 
@@ -917,36 +972,16 @@ avg.haxy<-mean(lb_yearly_weather$HAXY)
 avg.c7<-mean(lb_yearly_weather$C7)
 
 
-haxy.c7.y<-visreg(gam_haxy_yearly, "C7", partial=F, rug=FALSE, 
-       overlay=TRUE, scale="response", gg=T, ylab="", 
-       xlab=NULL, line=list(col="darkorange", lty=1),
-       fill=list(fill="darkorange", alpha=0.4))+
-  coord_cartesian(ylim=c(0, 14))+
-  theme_classic()+
-  geom_vline(xintercept=avg.c7, linetype="dashed", color="blue", size=1)
 
-haxy.c7.y
-
-
-haxy.dd20<-visreg(gam_haxy_yearly, "dd20", partial=F, rug=FALSE, 
+haxy.dd30<-visreg(gam_haxy_yearly, "dd30.dif", partial=F, rug=FALSE, 
                   overlay=TRUE,scale="response", gg=T, ylab="", 
                   xlab=NULL, line=list(col="darkorange", lty=1),
                   fill=list(fill="darkorange", alpha=0.4))+
-  coord_cartesian(ylim=c(0, 14))+
+  coord_cartesian(ylim=c(0, 35))+
   theme_classic()+
-  geom_vline(xintercept=avg.dd20, linetype="dashed", color="blue", size=1)
-haxy.dd20
+  geom_vline(xintercept=avg.dd30, linetype="dashed", color="blue", size=1)
+haxy.dd30
 
-
-haxy.dd35<-visreg(gam_haxy_yearly, "dd35.dif", partial=F, rug=FALSE,
-                  overlay=TRUE,scale="response", gg=T, ylab="", 
-                  xlab=NULL, line=list(col="darkorange", lty=1),
-                  fill=list(fill="darkorange", alpha=0.4))+
-  coord_cartesian(ylim=c(0, 14))+
-  theme_classic()+
-  geom_vline(xintercept=avg.dd35, linetype="dashed", color="blue", size=1)
-
-haxy.dd35
 
 
 
@@ -954,33 +989,32 @@ haxy.precip20<-visreg(gam_haxy_yearly, "precip20", partial=F, rug=FALSE,
                       overlay=TRUE,scale="response", gg=T, ylab="", 
                       xlab=NULL, line=list(col="darkorange", lty=1),
                       fill=list(fill="darkorange", alpha=0.4))+
-  coord_cartesian(ylim=c(0, 14))+
+  coord_cartesian(ylim=c(0, 35))+
   theme_classic()+
   geom_vline(xintercept=avg.precip20, linetype="dashed", color="blue", size=1)
 haxy.precip20
 
 
-haxy.precip25<-visreg(gam_haxy_yearly, "precip25.dif", partial=F, rug=FALSE, 
+haxy.precip35<-visreg(gam_haxy_yearly, "precip35.dif", partial=F, rug=FALSE, 
                       overlay=TRUE,scale="response", gg=T, ylab="", 
                       xlab=NULL, line=list(col="darkorange", lty=1),
                       fill=list(fill="darkorange", alpha=0.4))+
-  coord_cartesian(ylim=c(0, 14))+
+  coord_cartesian(ylim=c(0, 35))+
   theme_classic()+
-  geom_vline(xintercept=avg.precip25, linetype="dashed", color="blue", size=1)
-haxy.precip25
+  geom_vline(xintercept=avg.precip35, linetype="dashed", color="blue", size=1)
+haxy.precip35
 
 
 ##### now C7
 
-gam_c7_yearly<-gam(C7~s(HAXY, sp=1, k=4)+
-                       #s(dd20, sp=1, k=4)+
-                       #s(dd25.dif, sp=1, k=4)+
-                       #s(dd30.dif, sp=1, k=4)+
-                       s(dd35.dif, sp=1, k=4)+
-                       s(precip20, sp=1, k=4)+ 
-                       s(precip25.dif, sp=1, k=4)+
-                       #s(precip30.dif, sp=1, k=4)+
-                       s(precip35.dif, sp=1, k=4)+
+gam_c7_yearly<-gam(C7~ #s(dd20, sp=1)+
+                       s(dd25.dif, sp=1)+
+                       #s(dd30.dif, sp=1)+
+                       s(dd35.dif, sp=1)+
+                       #s(precip20, sp=1)+ 
+                       #s(precip25.dif, sp=1)+
+                       s(precip30.dif, sp=1)+
+                       #s(precip35.dif, sp=1)+
                      HABITAT+
                        offset(log(TRAPS)), data=lb_yearly_weather, family="quasipoisson", method="REML")
 summary(gam_c7_yearly)
@@ -990,66 +1024,46 @@ anova.gam(gam_c7_yearly)
 #check concurvity to see if it needs simplification- aim to get observed <0.5 for all values
 
 
-concurvity(gam_c7_yearly, full=TRUE)
+concurvity(gam_c7_yearly)
+
+gam.check(gam_c7_yearly)
 
 
 
-C7.haxy.y<-visreg(gam_c7_yearly, "HAXY", partial=F, rug=FALSE, 
-                  overlay=TRUE,scale="response", gg=T, ylab="",
-                  xlab=NULL,line=list(col="darkred", lty=1),
-                  fill=list(fill="darkred", alpha=0.4))+
-  coord_cartesian(ylim=c(0, 90))+
+
+
+C7.dd25<-visreg(gam_c7_yearly, "dd25.dif", partial=F, rug=FALSE,
+                overlay=TRUE,scale="response",gg=T, ylab="",
+                xlab=NULL,line=list(col="darkred", lty=1),
+                fill=list(fill=rgb(209,153,153, maxColorValue = 255)))+
+  coord_cartesian(ylim=c(0, 130))+
   theme_classic()+
-  geom_vline(xintercept=avg.haxy, linetype="dashed", color="blue", size=1)
+  geom_vline(xintercept=avg.dd25, linetype="dashed", color="blue", size=1)
 
-C7.haxy.y
-
+C7.dd25
 
 
 C7.dd35<-visreg(gam_c7_yearly, "dd35.dif", partial=F, rug=FALSE,
                 overlay=TRUE,scale="response",gg=T, ylab="",
                 xlab=NULL,line=list(col="darkred", lty=1),
-                fill=list(fill="darkred", alpha=0.4))+
-  coord_cartesian(ylim=c(0, 90))+
+                fill=list(fill=rgb(209,153,153, maxColorValue = 255)))+
+  coord_cartesian(ylim=c(0, 130), xlim=c(310, 460))+
   theme_classic()+
   geom_vline(xintercept=avg.dd35, linetype="dashed", color="blue", size=1)
 
 C7.dd35
 
 
-
-C7.precip20<-visreg(gam_c7_yearly, "precip20", partial=F, rug=FALSE,
+C7.precip30<-visreg(gam_c7_yearly, "precip30.dif", partial=F, rug=FALSE,
                     overlay=TRUE,scale="response", gg=T, ylab="",
                     xlab=NULL,line=list(col="darkred", lty=1),
-                    fill=list(fill="darkred", alpha=0.4))+
-  
-  coord_cartesian(ylim=c(0, 90))+
+                    fill=list(fill=rgb(209,153,153, maxColorValue = 255)))+
+  coord_cartesian(ylim=c(0, 130))+
   theme_classic()+
-  geom_vline(xintercept=avg.precip20, linetype="dashed", color="blue", size=1)
+  geom_vline(xintercept=avg.precip30, linetype="dashed", color="blue", size=1)
 
-C7.precip20
+C7.precip30
 
-C7.precip25<-visreg(gam_c7_yearly, "precip25.dif", partial=F, rug=FALSE,
-                    overlay=TRUE,scale="response", gg=T, ylab="",
-                    xlab=NULL,line=list(col="darkred", lty=1),
-                    fill=list(fill="darkred", alpha=0.4))+
-  coord_cartesian(ylim=c(0, 90))+
-  theme_classic()+
-  geom_vline(xintercept=avg.precip25, linetype="dashed", color="blue", size=1)
-
-C7.precip25
-
-
-C7.precip35<-visreg(gam_c7_yearly, "precip35.dif", partial=F, rug=FALSE,
-                    overlay=TRUE, scale="response", gg=T, ylab="",
-                    xlab=NULL,line=list(col="darkred", lty=1),
-                    fill=list(fill="darkred", alpha=0.4))+
-  
-  coord_cartesian(ylim=c(0, 90))+
-  theme_classic()+
-  geom_vline(xintercept=avg.precip35, linetype="dashed", color="blue", size=1)
-
-C7.precip35
 
 
 blankspace<-text_grob(paste(""), color="black")
@@ -1057,20 +1071,23 @@ harmonia<-text_grob(paste("Harmonia axyridis"), color="black", face="italic", si
 coccinella<-text_grob(paste("Coccinella septempunctata"), color="black", face="italic", size=13)
 Competitor<-text_grob(paste("Captures of\ncompetitor"), color="black", size=11)
 dd20<-text_grob(paste("Degree days\n  at 20 weeks"), color="black", size=11)
+dd25L<-text_grob(paste("Degree days\n  at 25 weeks"), color="black", size=11)
 dd25<-text_grob(paste("\n  at 25 weeks"), color="black", size=11)
 dd30<-text_grob(paste("\n  at 30 weeks"), color="black", size=11)
 dd35<-text_grob(paste("\n  at 35 weeks"), color="black", size=11)
 precip20<-text_grob(paste("Precipitation\nat 20 weeks"), color="black", size=11)
 
+
 #create a giant flippin' plot with all the panels
 
 between_years<-plot_grid(blankspace, harmonia, coccinella,
-                         dd20, haxy.dd20, blankspace,
-                         dd35, haxy.dd35, C7.dd35, 
-                         precip20, haxy.precip20, C7.precip20, 
-                         dd25, haxy.precip25, C7.precip25,
-                         dd35, blankspace, C7.precip35, 
-                         ncol=3, rel_widths=c(1,4,4),rel_heights = c(0.3,1,1,1,1,1), align="v", axis="l")
+                         dd25L, blankspace, C7.dd25,
+                         dd30, haxy.dd30, blankspace,
+                         dd35, blankspace, C7.dd35, 
+                         precip20, haxy.precip20, blankspace,
+                         dd30, blankspace, C7.precip30,
+                         dd35, haxy.precip35, blankspace, 
+                         ncol=3, rel_widths=c(1,4,4),rel_heights = c(0.3,1,1,1,1,1,1,1), align="v", axis="l")
 
 between_years
 
