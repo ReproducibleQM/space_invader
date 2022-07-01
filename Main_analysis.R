@@ -100,6 +100,19 @@ lb_yearly_boxplot<-ggplot(lb_yearly, aes(x=HABITAT, y=pertrap, fill=SPID))+
   theme_classic()+ theme(legend.position = "none", axis.text.x=element_text(angle=90))
 lb_yearly_boxplot
 
+#import ladybug icons
+library(jpeg)
+library(magick)
+library(cowplot)
+library(grid)
+
+
+harm<-magick::image_read("data/ha_square.jpeg")
+csept<-magick::image_read("data/c7_square.jpeg")
+lbset<-c(csept, harm)
+
+lbicon<-magick::image_append(image_scale(lbset, "100"), stack=TRUE)
+
 #let's look at the populations over time instead
 lb_yearly_plot<-ggplot(lb_yearly, aes(x=Year, y=SumOfADULTS, fill=SPID, shape=SPID, linetype=SPID, color=SPID))+
   geom_point(size=0.5, position="jitter", alpha=0.5)+
@@ -109,20 +122,27 @@ lb_yearly_plot<-ggplot(lb_yearly, aes(x=Year, y=SumOfADULTS, fill=SPID, shape=SP
   scale_shape_manual(values=c(4, 1), labels=c("C7", "HA"), name="Species")+
   scale_linetype_manual(values=c(1, 1), labels=c("C7", "HA"), name="Species")+
   labs(x="Year", y="Captures per trap")+
-  theme_classic()+ theme(legend.position = c(0.92, 0.85),legend.background = element_rect(fill='transparent'))
+  theme_classic()+ theme(legend.position = c(0.92, 0.85),legend.background = element_rect(fill='transparent'))+
+  annotation_custom(rasterGrob(lbicon), 2016.05, 2017.95, 153, 183)
+
 lb_yearly_plot
 
-library(cowplot)
-library(grid)
+
 
 rawtrends<-plot_grid(lb_yearly_plot, lb_yearly_boxplot,  ncol=1, rel_widths=c(1), labels=c('A', 'B'), 
                      align="v", axis="l")
 
 rawtrends
 
-pdf("plots/figurerawtrends.pdf", height=8, width=6)
+pdf("plots/figurerawtrends.pdf", height=8, width=6, bg="white")
 rawtrends
 dev.off()
+
+svg("plots/figurerawtrends.svg", height=8, width=6, bg="white")
+rawtrends
+dev.off()
+
+
 
 
 ###################################
@@ -671,24 +691,83 @@ plot(fit.week)
 
 #built a two-panel PDF
 #guh, looks like with the base vegan plots it's still easiest to do the base R
+#can we turn these plots into grobs? extract the data, remember we've transposed it so plant community was across the top of the matrix
+
+#yearly
+year.scores.species<-as.data.frame(scores(ord.year, "site"))
+year.scores.plant<-as.data.frame(scores(ord.year, "species"))
+year.scores.plant$Community <- rownames(year.scores.plant)
 
 
-pdf("plots/figureNMSDs.pdf", height=10, width=8)
-par(mfrow=c(2,1), mar=c(4.1, 4.8, 1.5, 8.1),xpd=TRUE) 
+arrow_factor<-ordiArrowMul(fit.year)
+year.data.fit<-as.data.frame(scores(fit.year, display="vectors"))*arrow_factor
+year.data.fit$vari<-rownames(year.data.fit)
 
-plot(ord.year, disp='sites', type='n')
-points(ord.year, display="sites", select=which(landscape.year$SPID=="HAXY"), pch=1, cex=0.5, col="darkorange")
-points(ord.year, display="sites", select=which(landscape.year$SPID=="C7"), pch=4, cex=0.5, col="darkred")
-ordilabel(ord.year, display="species", cex=0.75, col="black")
-plot(fit.year)
-text(-1.45, 0.95, "A", cex=2)
+#make the names on the vectors nicer
+year.data.fit$vari<-gsub("precip35.dif","precip35", year.data.fit$vari)
+year.data.fit$vari<-gsub("dd35.dif","dd35", year.data.fit$vari)
+arrow_factor<-ordiArrowMul(fit.year)
+fudgexy<-c(0.1, 0.1, -0.2)#jitter the vector labels a bit
+fudgeyy<-c(0, 0, 0)
 
-plot(ord.week, disp='sites', type='n')
-points(ord.week, display="sites", select=which(landscape.week.1$SPID=="HAXY"), pch=1, cex=0.5,col="darkorange")
-points(ord.week, display="sites", select=which(landscape.week.1$SPID=="C7"), pch=4, cex=0.5, col="darkred")
-ordilabel(ord.week, display="species", cex=0.75, col="black")
-plot(fit.week)
-text(-1.9,1.46, "B", cex=2)
+yearnmds<-ggplot()+
+  geom_point(data=year.scores.species,
+             aes(x=NMDS1,y=NMDS2,shape=landscape.year$SPID,colour=landscape.year$SPID), size=1)+# add the point markers
+  scale_colour_manual(values=c("C7" = "darkred", "HAXY" = "darkorange"), labels=c("C7", "HA")) +
+  scale_shape_manual(values=c("C7" = 4, "HAXY" = 1), labels=c("C7", "HA"))+
+  geom_segment(data=year.data.fit, aes(x=0, xend=NMDS1, y=0, yend=NMDS2), 
+               arrow=arrow(length = unit(0.03, "npc")), size=0.8, color="blue")+
+  geom_label(data=year.data.fit, aes(x=NMDS1+fudgexy, y=NMDS2+fudgeyy, label=vari),size= 5, color="blue", fill="white", alpha=0.7, label.size=NA)+
+  geom_label(data=year.scores.plant,aes(x=NMDS1,y=NMDS2,label=vari),size=4,vjust=0, fill="white", alpha=0.9) +  # add the site labels
+  coord_fixed()+
+  theme_classic()+
+  theme(legend.position = "none")
+
+yearnmds
+
+#weekly
+
+
+week.scores.species<-as.data.frame(scores(ord.week, "site"))
+week.scores.plant<-as.data.frame(scores(ord.week, "species"))
+week.scores.plant$Community <- rownames(week.scores.plant)
+
+
+arrow_factorw<-ordiArrowMul(fit.week)
+week.data.fit<-as.data.frame(scores(fit.week, display="vectors"))*arrow_factorw
+week.data.fit$vari<-rownames(week.data.fit)
+
+#make the names on the vectors nicer
+week.data.fit$vari<-gsub("yearly.precip.accum","precip", week.data.fit$vari)
+week.data.fit$vari<-gsub("yearly.dd.accum","dd", week.data.fit$vari)
+fudgex<-c(0.15, -0.285, 0)#jitter the vector labels a bit
+fudgey<-c(0.15, 0.08, 0.17)#jitter the vector labels a bit
+
+weeknmds<-ggplot()+
+  geom_point(data=week.scores.species,
+             aes(x=NMDS1,y=NMDS2,shape=landscape.week.1$SPID,colour=landscape.week.1$SPID), size=1)+# add the point markers
+  scale_colour_manual(values=c("C7" = "darkred", "HAXY" = "darkorange"), labels=c("C7", "HA")) +
+  scale_shape_manual(values=c("C7" = 4, "HAXY" = 1), labels=c("C7", "HA"))+
+  geom_segment(data=week.data.fit, aes(x=0, xend=NMDS1, y=0, yend=NMDS2), 
+               arrow=arrow(length = unit(0.03, "npc")), size=0.8, color="blue")+
+  geom_label(data=week.data.fit, aes(x=NMDS1+fudgex, y=NMDS2+fudgey, label=vari),size= 5, color="blue", fill="white", alpha=0.7, label.size=NA)+
+  geom_label(data=week.scores.plant,aes(x=NMDS1,y=NMDS2,label=Community),size=4,vjust=0, fill="white", alpha=0.9) +  # add the site labels
+  coord_fixed()+
+  theme_classic()+
+  theme(legend.position = "none")
+
+weeknmds
+
+#ok, finally. Put it together
+ggnmds<-plot_grid(yearnmds, weeknmds,  ncol=1, rel_widths=c(1), labels=c('A', 'B'), 
+                     align="h", axis="l")
+
+ggnmds
+
+
+
+pdf("plots/figureNMSDs1.pdf", height=10, width=6)
+ggnmds
 dev.off()
 
 
