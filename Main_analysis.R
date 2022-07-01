@@ -682,16 +682,12 @@ plot(fit.week)
 # plot(fit.week)
 # dev.off()
 
-# #install ggvegan
-# install.packages("remotes")
-# remotes::install_github("gavinsimpson/ggvegan")
-
-
 
 
 #built a two-panel PDF
 #guh, looks like with the base vegan plots it's still easiest to do the base R
-#can we turn these plots into grobs? extract the data, remember we've transposed it so plant community was across the top of the matrix
+#can we turn these plots into grobs? extract the data, remember we've transposed it so plant 
+#community was across the top of the matrix
 
 #yearly
 year.scores.species<-as.data.frame(scores(ord.year, "site"))
@@ -707,8 +703,8 @@ year.data.fit$vari<-rownames(year.data.fit)
 year.data.fit$vari<-gsub("precip35.dif","precip35", year.data.fit$vari)
 year.data.fit$vari<-gsub("dd35.dif","dd35", year.data.fit$vari)
 arrow_factor<-ordiArrowMul(fit.year)
-fudgexy<-c(0.1, 0.1, -0.2)#jitter the vector labels a bit
-fudgeyy<-c(0, 0, 0)
+fudgexy<-c(0.1, 0.14, -0.2)#jitter the vector labels a bit
+fudgeyy<-c(-0.08, -0.06, 0.12)
 
 yearnmds<-ggplot()+
   geom_point(data=year.scores.species,
@@ -718,7 +714,7 @@ yearnmds<-ggplot()+
   geom_segment(data=year.data.fit, aes(x=0, xend=NMDS1, y=0, yend=NMDS2), 
                arrow=arrow(length = unit(0.03, "npc")), size=0.8, color="blue")+
   geom_label(data=year.data.fit, aes(x=NMDS1+fudgexy, y=NMDS2+fudgeyy, label=vari),size= 5, color="blue", fill="white", alpha=0.7, label.size=NA)+
-  geom_label(data=year.scores.plant,aes(x=NMDS1,y=NMDS2,label=vari),size=4,vjust=0, fill="white", alpha=0.9) +  # add the site labels
+  geom_label(data=year.scores.plant,aes(x=NMDS1,y=NMDS2,label=Community),size=4,vjust=0, fill="white", alpha=0.9) +  # add the site labels
   coord_fixed()+
   theme_classic()+
   theme(legend.position = "none")
@@ -741,7 +737,7 @@ week.data.fit$vari<-rownames(week.data.fit)
 week.data.fit$vari<-gsub("yearly.precip.accum","precip", week.data.fit$vari)
 week.data.fit$vari<-gsub("yearly.dd.accum","dd", week.data.fit$vari)
 fudgex<-c(0.15, -0.285, 0)#jitter the vector labels a bit
-fudgey<-c(0.15, 0.08, 0.17)#jitter the vector labels a bit
+fudgey<-c(0.15, -0.08, 0.17)#jitter the vector labels a bit
 
 weeknmds<-ggplot()+
   geom_point(data=week.scores.species,
