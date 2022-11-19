@@ -783,7 +783,7 @@ round(cor(lb_all[10:19], method="pearson"), digits=2)
 #start withe the drivers of within-year variation
 
 library(psych)
-pairs.panels(lb_all[c(10,11,13:19)], #drop 'weeekly preciptiation because it's = mean daily precip*7
+pairs.panels(lb_all[c(10,11,13:19)], #drop 'weekly precipitation because it's = mean daily precip*7
              method = "pearson", # correlation method
              hist.col = "#00AFBB",
              density = TRUE,  # show density plots
@@ -955,8 +955,41 @@ predict.dd.HAXY.1<-predict(gam_lb, newData.HAXY.1, type="link")
 dd.HAXY.der<-as.data.frame(cbind(newData.HAXY$yearly.dd.accum, predict.dd.HAXY, predict.dd.HAXY.1))
 dd.HAXY.der$slope<-(dd.HAXY.der$predict.dd.HAXY.1-dd.HAXY.der$predict.dd.HAXY)/1
 
+#ok, now let's predict the mean captures for each habitat. Let's do this at the C7 activity peak
+
+newData.C7.habitat<- with(lb_all,
+                          data.frame(yearly.dd.accum = 1250,
+                                                TRAPS=5, 
+                                                year=mean(year), 
+                                                max.rainfall=mean(max.rainfall), 
+                                                max.temp=mean(max.temp), 
+                                                SPID="C7", 
+                                                HABITAT="ES"))
+predict(gam_lb, newData.C7.habitat, type="link")
 
 
+
+#soybean 1.74
+#wheat 1.93
+#alfalfa 1.76
+#ES 1.31
+#poplar
+
+
+
+newData.HAXY.habitat<- with(lb_all,
+                          data.frame(yearly.dd.accum = 1250,
+                                     TRAPS=5, 
+                                     year=mean(year), 
+                                     max.rainfall=mean(max.rainfall), 
+                                     max.temp=mean(max.temp), 
+                                     SPID="HAXY", 
+                                     HABITAT="poplar"))
+predict(gam_lb, newData.HAXY.habitat, type="link")
+
+#alfalfa 0.65
+#es 0.49
+# Poplar
 
 
 #now, what accounts for the year to-year variation in absolute numbers of both species? 
